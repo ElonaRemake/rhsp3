@@ -1,0 +1,8 @@
+[package]
+name = "rhsp3_internal_plugabi"
+version = "0.1.0"
+edition = "2021"
+
+description = "A shared crate for rhsp3 to implement HSP3's plugin ABI. Not public API."
+
+[dependencies]
