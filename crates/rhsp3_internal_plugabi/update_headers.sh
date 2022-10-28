@@ -7,4 +7,5 @@ bindgen \
   --with-derive-ord \
   --impl-debug \
   --generate-inline-functions \
-  openhsp_headers/hsp3struct.h -o src/hsp3struct.rs -- -target i686-pc-windows-gnu
+  --no-layout-tests \
+  openhsp_headers/hsp3struct.h -o src/hsp3struct.rs
