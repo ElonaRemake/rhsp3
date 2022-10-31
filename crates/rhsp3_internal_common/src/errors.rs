@@ -3,6 +3,7 @@
 //! This is publicly reexported in every subcrate that uses it, but this crate itself is not
 //! public API.
 
+use crate::hsp_errors::ErrorCode;
 use backtrace::Backtrace;
 use std::{
     fmt::{Debug, Display, Formatter},
@@ -26,6 +27,12 @@ pub enum ErrorKind {
     /// A wrapped external error.
     #[error("External error encountered: {0}")]
     WrappedError(#[from] Box<dyn StdError + 'static>),
+    /// An internal error occurred.
+    #[error("Internal error: {0}")]
+    InternalError(String),
+    /// A message that should be shown directly to the user.
+    #[error("{0}")]
+    Message(String),
 }
 
 /// The error type used by rhsp3.
@@ -45,11 +52,24 @@ struct ErrorData {
     kind: ErrorKind,
     backtrace: Option<Backtrace>,
     cause: Option<Box<dyn StdError + 'static>>,
+    error_code: Option<ErrorCode>,
 }
 impl Error {
+    /// Creates an new error containing a message to show directly to the user.
+    #[inline(never)]
+    pub fn message(msg: impl Display) -> Self {
+        Error::new(ErrorKind::Message(msg.to_string()))
+    }
+
+    /// Creates an new error containing an internal error.
+    #[inline(never)]
+    pub fn internal_error(msg: impl Display) -> Self {
+        Error::new(ErrorKind::InternalError(msg.to_string())).with_backtrace()
+    }
+
     #[inline(never)]
     fn new(kind: ErrorKind) -> Error {
-        Error(Box::new(ErrorData { kind, backtrace: None, cause: None }))
+        Error(Box::new(ErrorData { kind, backtrace: None, cause: None, error_code: None }))
     }
 
     #[inline(never)]
@@ -63,10 +83,17 @@ impl Error {
         // Make sure we don't get into tangles of error chains.
         assert!(self.0.cause.is_none());
 
-        // If the cause is an `ErrorWrapping` containing a backtrace, we move it to this type.
         if let Some(err) = source.downcast_mut::<ErrorWrapper>() {
+            // If the cause is an `ErrorWrapping` containing a backtrace, we move it to this type.
             if let Some(backtrace) = err.as_inner_mut().0.backtrace.take() {
                 self.0.backtrace = Some(backtrace);
+            }
+
+            // If the cause contains an HSP error code, we move it to this type.
+            if let Some(hsp_code) = err.as_inner().0.error_code {
+                if self.0.error_code.is_none() {
+                    self.0.error_code = Some(hsp_code);
+                }
             }
         }
 
@@ -99,6 +126,12 @@ impl Error {
         }
     }
 
+    /// Sets the error code returned to HSP.
+    pub fn with_error_code(mut self, code: ErrorCode) -> Self {
+        self.0.error_code = Some(code);
+        self
+    }
+
     /// Returns the source of this error if one exists.
     pub fn source(&self) -> Option<&(dyn StdError + 'static)> {
         if let Some(x) = self.0.cause.as_ref() {
@@ -111,6 +144,11 @@ impl Error {
     /// Returns the backtrace stored as part of this error, if one exists.
     pub fn backtrace(&self) -> Option<&Backtrace> {
         self.0.backtrace.as_ref()
+    }
+
+    /// Returns the error code this error will return to HSP code.
+    pub fn error_code(&self) -> ErrorCode {
+        self.0.error_code.unwrap_or(ErrorCode::GenericError)
     }
 
     /// Converts this error into a type that implements [`std::error::Error`].
@@ -203,4 +241,103 @@ impl ErrorPrivate for Error {
     fn with_backtrace(self) -> Self {
         self.with_backtrace()
     }
+}
+
+/// Not public API.
+#[doc(hidden)]
+pub mod macro_hidden {
+    use super::*;
+
+    pub use std::result::Result::Err;
+
+    #[inline(never)]
+    pub fn message(msg: impl Display) -> Error {
+        Error::message(msg)
+    }
+
+    #[inline(never)]
+    pub fn internal_error(msg: impl Display) -> Error {
+        Error::internal_error(msg.to_string())
+    }
+
+    #[inline(never)]
+    pub fn message_with_code(code: ErrorCode, msg: impl Display) -> Error {
+        Error::message(msg).with_error_code(code)
+    }
+
+    #[inline(never)]
+    pub fn internal_error_with_code(code: ErrorCode, msg: impl Display) -> Error {
+        Error::internal_error(msg.to_string()).with_error_code(code)
+    }
+}
+
+/// Returns from an rhsp3 function with an internal error.
+///
+/// This has the same parameters as [`panic!`], but it returns an [`Result`] from the current
+/// function instead.
+///
+/// In addition, you may pass an additional first parameter like `code: TypeMismatch` containing
+/// an variant of [`ErrorCode`] to override the error code returned to HSP code.
+#[macro_export]
+macro_rules! bail {
+    (code: $code:ident, $($rest:tt)*) => {
+        return $crate::errors::macro_hidden::Err(
+            $crate::errors::macro_hidden::internal_error_with_code(
+                $crate::hsp_errors::$code, format_args!($($rest)*),
+            ),
+        )
+    };
+    (code: $code:expr, $($rest:tt)*) => {
+        return $crate::errors::macro_hidden::Err(
+            $crate::errors::macro_hidden::internal_error_with_code(
+                $code, format_args!($($rest)*),
+            ),
+        )
+    };
+    ($($rest:tt)*) => {
+        return $crate::errors::macro_hidden::Err(
+            $crate::errors::macro_hidden::internal_error(format_args!($($rest)*)),
+        )
+    }
+}
+
+/// Returns from an rhsp3 function with an internal error if a condition is not met.
+///
+/// This has the same parameters as [`assert!`], but it returns an [`Result`] from the current
+/// function instead.
+///
+/// In addition, you may pass an additional first parameter like `code: TypeMismatch` containing
+/// an variant of [`ErrorCode`] to override the error code returned to HSP code.
+#[macro_export]
+macro_rules! ensure {
+    (code: $code:ident, $test:expr $(,)*) => {
+        if !$test {
+            $crate::bail!(code: $code, "{}", stringify!($test));
+        }
+    };
+    (code: $code:expr, $test:expr $(,)*) => {
+        if !$test {
+            $crate::bail!(code: $code, "{}", stringify!($test));
+        }
+    };
+    ($test:expr $(,)*) => {
+        if !$test {
+            $crate::bail!("{}", stringify!($test));
+        }
+    };
+    (code: $code:ident, $test:expr, $($rest:tt)*) => {
+        if !$test {
+            $crate::bail!(code: $code, $($rest)*);
+        }
+    };
+    (code: $code:expr, $test:expr, $($rest:tt)*) => {
+        if !$test {
+            $crate::bail!(code: $code, $($rest)*);
+        }
+    };
+    ($test:expr, $($rest:tt)*) => {
+        if !$test {
+            $crate::bail!($($rest)*);
+        }
+    };
 }

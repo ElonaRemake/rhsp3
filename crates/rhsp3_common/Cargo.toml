@@ -1,0 +1,7 @@
+[package]
+name = "rhsp3_common"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rhsp3_internal_common = { path = "../rhsp3_internal_common" }

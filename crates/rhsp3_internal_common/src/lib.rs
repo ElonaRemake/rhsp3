@@ -2,4 +2,5 @@
 //! interoperate.
 
 pub mod errors;
-mod plugin;
+pub mod hsp_errors;
+pub mod plugin;

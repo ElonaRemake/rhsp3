@@ -8,3 +8,5 @@ description = "The internal implementation of rhsp3_common. Not public API."
 [dependencies]
 backtrace = "0.3.66"
 thiserror = "1.0.37"
+
+rhsp3_internal_abi = { path = "../rhsp3_internal_abi" }

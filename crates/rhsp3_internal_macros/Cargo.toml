@@ -1,0 +1,15 @@
+[package]
+name = "rhsp3_internal_macros"
+version = "0.1.0"
+edition = "2021"
+
+description = "A shared crate for rhsp3's macros. Not public API."
+
+[lib]
+proc-macro = true
+doc = false
+
+[dependencies]
+syn = { version = "1", features = ["full"] }
+quote = "1"
+proc-macro2 = "1"

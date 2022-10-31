@@ -16,11 +16,17 @@ fn check_ultimate_source(error: Result<()>, is_std: bool, count: u32) {
     assert_eq!(source_count, count);
     if count != 0 {
         if is_std {
-            let err = ultimate_source.unwrap().downcast_ref::<std::io::Error>().unwrap();
+            let err = ultimate_source
+                .unwrap()
+                .downcast_ref::<std::io::Error>()
+                .unwrap();
             assert_eq!(err.kind(), std::io::ErrorKind::Other);
             assert!(err.to_string().contains("Testing error"));
         } else {
-            let err = ultimate_source.unwrap().downcast_ref::<ErrorWrapper>().unwrap();
+            let err = ultimate_source
+                .unwrap()
+                .downcast_ref::<ErrorWrapper>()
+                .unwrap();
             assert_eq!(err.to_string(), "[Testing error]");
         }
     }
@@ -76,6 +82,11 @@ fn bt_root_std() -> Result<()> {
 #[inline(never)]
 fn bt_root_no_backtrace() -> Result<()> {
     Err(error_new(ErrorKind::TestingError))
+}
+
+#[test]
+fn error_is_one_pointer() {
+    assert_eq!(std::mem::size_of::<Error>(), std::mem::size_of::<*const u32>());
 }
 
 #[test]

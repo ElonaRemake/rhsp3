@@ -186,6 +186,7 @@ name = "rhsp3_internal_common"
 version = "0.1.0"
 dependencies = [
  "backtrace",
+ "rhsp3_internal_abi",
  "thiserror",
 ]
 
