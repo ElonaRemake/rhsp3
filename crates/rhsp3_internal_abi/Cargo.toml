@@ -1,5 +1,5 @@
 [package]
-name = "rhsp3_internal_plugabi"
+name = "rhsp3_internal_abi"
 version = "0.1.0"
 edition = "2021"
 

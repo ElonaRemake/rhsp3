@@ -2,24 +2,26 @@
 
 pub type PDAT = *mut ::std::os::raw::c_void;
 pub type APTR = ::std::os::raw::c_int;
-pub const CALCCODE_ADD: _bindgen_ty_1 = 0;
-pub const CALCCODE_SUB: _bindgen_ty_1 = 1;
-pub const CALCCODE_MUL: _bindgen_ty_1 = 2;
-pub const CALCCODE_DIV: _bindgen_ty_1 = 3;
-pub const CALCCODE_MOD: _bindgen_ty_1 = 4;
-pub const CALCCODE_AND: _bindgen_ty_1 = 5;
-pub const CALCCODE_OR: _bindgen_ty_1 = 6;
-pub const CALCCODE_XOR: _bindgen_ty_1 = 7;
-pub const CALCCODE_EQ: _bindgen_ty_1 = 8;
-pub const CALCCODE_NE: _bindgen_ty_1 = 9;
-pub const CALCCODE_GT: _bindgen_ty_1 = 10;
-pub const CALCCODE_LT: _bindgen_ty_1 = 11;
-pub const CALCCODE_GTEQ: _bindgen_ty_1 = 12;
-pub const CALCCODE_LTEQ: _bindgen_ty_1 = 13;
-pub const CALCCODE_RR: _bindgen_ty_1 = 14;
-pub const CALCCODE_LR: _bindgen_ty_1 = 15;
-pub const CALCCODE_MAX: _bindgen_ty_1 = 16;
-pub type _bindgen_ty_1 = ::std::os::raw::c_uint;
+pub const CALCCODE_ADD: _bindgen_ty_1 = _bindgen_ty_1(0);
+pub const CALCCODE_SUB: _bindgen_ty_1 = _bindgen_ty_1(1);
+pub const CALCCODE_MUL: _bindgen_ty_1 = _bindgen_ty_1(2);
+pub const CALCCODE_DIV: _bindgen_ty_1 = _bindgen_ty_1(3);
+pub const CALCCODE_MOD: _bindgen_ty_1 = _bindgen_ty_1(4);
+pub const CALCCODE_AND: _bindgen_ty_1 = _bindgen_ty_1(5);
+pub const CALCCODE_OR: _bindgen_ty_1 = _bindgen_ty_1(6);
+pub const CALCCODE_XOR: _bindgen_ty_1 = _bindgen_ty_1(7);
+pub const CALCCODE_EQ: _bindgen_ty_1 = _bindgen_ty_1(8);
+pub const CALCCODE_NE: _bindgen_ty_1 = _bindgen_ty_1(9);
+pub const CALCCODE_GT: _bindgen_ty_1 = _bindgen_ty_1(10);
+pub const CALCCODE_LT: _bindgen_ty_1 = _bindgen_ty_1(11);
+pub const CALCCODE_GTEQ: _bindgen_ty_1 = _bindgen_ty_1(12);
+pub const CALCCODE_LTEQ: _bindgen_ty_1 = _bindgen_ty_1(13);
+pub const CALCCODE_RR: _bindgen_ty_1 = _bindgen_ty_1(14);
+pub const CALCCODE_LR: _bindgen_ty_1 = _bindgen_ty_1(15);
+pub const CALCCODE_MAX: _bindgen_ty_1 = _bindgen_ty_1(16);
+#[repr(transparent)]
+#[derive(Debug, Copy, Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
+pub struct _bindgen_ty_1(pub ::std::os::raw::c_uint);
 #[repr(C)]
 #[derive(Debug, Copy, Clone, PartialOrd, Ord, PartialEq, Eq)]
 pub struct PVal {
@@ -179,67 +181,73 @@ impl Default for FlexValue {
         }
     }
 }
-pub const HSPERROR_HSPERR_NONE: HSPERROR = 0;
-pub const HSPERROR_HSPERR_UNKNOWN_CODE: HSPERROR = 1;
-pub const HSPERROR_HSPERR_SYNTAX: HSPERROR = 2;
-pub const HSPERROR_HSPERR_ILLEGAL_FUNCTION: HSPERROR = 3;
-pub const HSPERROR_HSPERR_WRONG_EXPRESSION: HSPERROR = 4;
-pub const HSPERROR_HSPERR_NO_DEFAULT: HSPERROR = 5;
-pub const HSPERROR_HSPERR_TYPE_MISMATCH: HSPERROR = 6;
-pub const HSPERROR_HSPERR_ARRAY_OVERFLOW: HSPERROR = 7;
-pub const HSPERROR_HSPERR_LABEL_REQUIRED: HSPERROR = 8;
-pub const HSPERROR_HSPERR_TOO_MANY_NEST: HSPERROR = 9;
-pub const HSPERROR_HSPERR_RETURN_WITHOUT_GOSUB: HSPERROR = 10;
-pub const HSPERROR_HSPERR_LOOP_WITHOUT_REPEAT: HSPERROR = 11;
-pub const HSPERROR_HSPERR_FILE_IO: HSPERROR = 12;
-pub const HSPERROR_HSPERR_PICTURE_MISSING: HSPERROR = 13;
-pub const HSPERROR_HSPERR_EXTERNAL_EXECUTE: HSPERROR = 14;
-pub const HSPERROR_HSPERR_PRIORITY: HSPERROR = 15;
-pub const HSPERROR_HSPERR_TOO_MANY_PARAMETERS: HSPERROR = 16;
-pub const HSPERROR_HSPERR_TEMP_BUFFER_OVERFLOW: HSPERROR = 17;
-pub const HSPERROR_HSPERR_WRONG_NAME: HSPERROR = 18;
-pub const HSPERROR_HSPERR_DIVIDED_BY_ZERO: HSPERROR = 19;
-pub const HSPERROR_HSPERR_BUFFER_OVERFLOW: HSPERROR = 20;
-pub const HSPERROR_HSPERR_UNSUPPORTED_FUNCTION: HSPERROR = 21;
-pub const HSPERROR_HSPERR_EXPRESSION_COMPLEX: HSPERROR = 22;
-pub const HSPERROR_HSPERR_VARIABLE_REQUIRED: HSPERROR = 23;
-pub const HSPERROR_HSPERR_INTEGER_REQUIRED: HSPERROR = 24;
-pub const HSPERROR_HSPERR_BAD_ARRAY_EXPRESSION: HSPERROR = 25;
-pub const HSPERROR_HSPERR_OUT_OF_MEMORY: HSPERROR = 26;
-pub const HSPERROR_HSPERR_TYPE_INITALIZATION_FAILED: HSPERROR = 27;
-pub const HSPERROR_HSPERR_NO_FUNCTION_PARAMETERS: HSPERROR = 28;
-pub const HSPERROR_HSPERR_STACK_OVERFLOW: HSPERROR = 29;
-pub const HSPERROR_HSPERR_INVALID_PARAMETER: HSPERROR = 30;
-pub const HSPERROR_HSPERR_INVALID_ARRAYSTORE: HSPERROR = 31;
-pub const HSPERROR_HSPERR_INVALID_FUNCPARAM: HSPERROR = 32;
-pub const HSPERROR_HSPERR_WINDOW_OBJECT_FULL: HSPERROR = 33;
-pub const HSPERROR_HSPERR_INVALID_ARRAY: HSPERROR = 34;
-pub const HSPERROR_HSPERR_STRUCT_REQUIRED: HSPERROR = 35;
-pub const HSPERROR_HSPERR_INVALID_STRUCT_SOURCE: HSPERROR = 36;
-pub const HSPERROR_HSPERR_INVALID_TYPE: HSPERROR = 37;
-pub const HSPERROR_HSPERR_DLL_ERROR: HSPERROR = 38;
-pub const HSPERROR_HSPERR_COMDLL_ERROR: HSPERROR = 39;
-pub const HSPERROR_HSPERR_NORETVAL: HSPERROR = 40;
-pub const HSPERROR_HSPERR_FUNCTION_SYNTAX: HSPERROR = 41;
-pub const HSPERROR_HSPERR_INVALID_CALLBACK: HSPERROR = 42;
-pub const HSPERROR_HSPERR_INTJUMP: HSPERROR = 43;
-pub const HSPERROR_HSPERR_EXITRUN: HSPERROR = 44;
-pub const HSPERROR_HSPERR_MAX: HSPERROR = 45;
-pub type HSPERROR = ::std::os::raw::c_uint;
-pub const DEBUGINFO_GENERAL: _bindgen_ty_2 = 0;
-pub const DEBUGINFO_VARNAME: _bindgen_ty_2 = 1;
-pub const DEBUGINFO_INTINFO: _bindgen_ty_2 = 2;
-pub const DEBUGINFO_GRINFO: _bindgen_ty_2 = 3;
-pub const DEBUGINFO_MMINFO: _bindgen_ty_2 = 4;
-pub const DEBUGINFO_MAX: _bindgen_ty_2 = 5;
-pub type _bindgen_ty_2 = ::std::os::raw::c_uint;
-pub const HSPDEBUG_NONE: _bindgen_ty_3 = 0;
-pub const HSPDEBUG_RUN: _bindgen_ty_3 = 1;
-pub const HSPDEBUG_STOP: _bindgen_ty_3 = 2;
-pub const HSPDEBUG_STEPIN: _bindgen_ty_3 = 3;
-pub const HSPDEBUG_STEPOVER: _bindgen_ty_3 = 4;
-pub const HSPDEBUG_MAX: _bindgen_ty_3 = 5;
-pub type _bindgen_ty_3 = ::std::os::raw::c_uint;
+pub const HSPERROR_HSPERR_NONE: HSPERROR = HSPERROR(0);
+pub const HSPERROR_HSPERR_UNKNOWN_CODE: HSPERROR = HSPERROR(1);
+pub const HSPERROR_HSPERR_SYNTAX: HSPERROR = HSPERROR(2);
+pub const HSPERROR_HSPERR_ILLEGAL_FUNCTION: HSPERROR = HSPERROR(3);
+pub const HSPERROR_HSPERR_WRONG_EXPRESSION: HSPERROR = HSPERROR(4);
+pub const HSPERROR_HSPERR_NO_DEFAULT: HSPERROR = HSPERROR(5);
+pub const HSPERROR_HSPERR_TYPE_MISMATCH: HSPERROR = HSPERROR(6);
+pub const HSPERROR_HSPERR_ARRAY_OVERFLOW: HSPERROR = HSPERROR(7);
+pub const HSPERROR_HSPERR_LABEL_REQUIRED: HSPERROR = HSPERROR(8);
+pub const HSPERROR_HSPERR_TOO_MANY_NEST: HSPERROR = HSPERROR(9);
+pub const HSPERROR_HSPERR_RETURN_WITHOUT_GOSUB: HSPERROR = HSPERROR(10);
+pub const HSPERROR_HSPERR_LOOP_WITHOUT_REPEAT: HSPERROR = HSPERROR(11);
+pub const HSPERROR_HSPERR_FILE_IO: HSPERROR = HSPERROR(12);
+pub const HSPERROR_HSPERR_PICTURE_MISSING: HSPERROR = HSPERROR(13);
+pub const HSPERROR_HSPERR_EXTERNAL_EXECUTE: HSPERROR = HSPERROR(14);
+pub const HSPERROR_HSPERR_PRIORITY: HSPERROR = HSPERROR(15);
+pub const HSPERROR_HSPERR_TOO_MANY_PARAMETERS: HSPERROR = HSPERROR(16);
+pub const HSPERROR_HSPERR_TEMP_BUFFER_OVERFLOW: HSPERROR = HSPERROR(17);
+pub const HSPERROR_HSPERR_WRONG_NAME: HSPERROR = HSPERROR(18);
+pub const HSPERROR_HSPERR_DIVIDED_BY_ZERO: HSPERROR = HSPERROR(19);
+pub const HSPERROR_HSPERR_BUFFER_OVERFLOW: HSPERROR = HSPERROR(20);
+pub const HSPERROR_HSPERR_UNSUPPORTED_FUNCTION: HSPERROR = HSPERROR(21);
+pub const HSPERROR_HSPERR_EXPRESSION_COMPLEX: HSPERROR = HSPERROR(22);
+pub const HSPERROR_HSPERR_VARIABLE_REQUIRED: HSPERROR = HSPERROR(23);
+pub const HSPERROR_HSPERR_INTEGER_REQUIRED: HSPERROR = HSPERROR(24);
+pub const HSPERROR_HSPERR_BAD_ARRAY_EXPRESSION: HSPERROR = HSPERROR(25);
+pub const HSPERROR_HSPERR_OUT_OF_MEMORY: HSPERROR = HSPERROR(26);
+pub const HSPERROR_HSPERR_TYPE_INITALIZATION_FAILED: HSPERROR = HSPERROR(27);
+pub const HSPERROR_HSPERR_NO_FUNCTION_PARAMETERS: HSPERROR = HSPERROR(28);
+pub const HSPERROR_HSPERR_STACK_OVERFLOW: HSPERROR = HSPERROR(29);
+pub const HSPERROR_HSPERR_INVALID_PARAMETER: HSPERROR = HSPERROR(30);
+pub const HSPERROR_HSPERR_INVALID_ARRAYSTORE: HSPERROR = HSPERROR(31);
+pub const HSPERROR_HSPERR_INVALID_FUNCPARAM: HSPERROR = HSPERROR(32);
+pub const HSPERROR_HSPERR_WINDOW_OBJECT_FULL: HSPERROR = HSPERROR(33);
+pub const HSPERROR_HSPERR_INVALID_ARRAY: HSPERROR = HSPERROR(34);
+pub const HSPERROR_HSPERR_STRUCT_REQUIRED: HSPERROR = HSPERROR(35);
+pub const HSPERROR_HSPERR_INVALID_STRUCT_SOURCE: HSPERROR = HSPERROR(36);
+pub const HSPERROR_HSPERR_INVALID_TYPE: HSPERROR = HSPERROR(37);
+pub const HSPERROR_HSPERR_DLL_ERROR: HSPERROR = HSPERROR(38);
+pub const HSPERROR_HSPERR_COMDLL_ERROR: HSPERROR = HSPERROR(39);
+pub const HSPERROR_HSPERR_NORETVAL: HSPERROR = HSPERROR(40);
+pub const HSPERROR_HSPERR_FUNCTION_SYNTAX: HSPERROR = HSPERROR(41);
+pub const HSPERROR_HSPERR_INVALID_CALLBACK: HSPERROR = HSPERROR(42);
+pub const HSPERROR_HSPERR_INTJUMP: HSPERROR = HSPERROR(43);
+pub const HSPERROR_HSPERR_EXITRUN: HSPERROR = HSPERROR(44);
+pub const HSPERROR_HSPERR_MAX: HSPERROR = HSPERROR(45);
+#[repr(transparent)]
+#[derive(Debug, Copy, Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
+pub struct HSPERROR(pub ::std::os::raw::c_uint);
+pub const DEBUGINFO_GENERAL: _bindgen_ty_2 = _bindgen_ty_2(0);
+pub const DEBUGINFO_VARNAME: _bindgen_ty_2 = _bindgen_ty_2(1);
+pub const DEBUGINFO_INTINFO: _bindgen_ty_2 = _bindgen_ty_2(2);
+pub const DEBUGINFO_GRINFO: _bindgen_ty_2 = _bindgen_ty_2(3);
+pub const DEBUGINFO_MMINFO: _bindgen_ty_2 = _bindgen_ty_2(4);
+pub const DEBUGINFO_MAX: _bindgen_ty_2 = _bindgen_ty_2(5);
+#[repr(transparent)]
+#[derive(Debug, Copy, Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
+pub struct _bindgen_ty_2(pub ::std::os::raw::c_uint);
+pub const HSPDEBUG_NONE: _bindgen_ty_3 = _bindgen_ty_3(0);
+pub const HSPDEBUG_RUN: _bindgen_ty_3 = _bindgen_ty_3(1);
+pub const HSPDEBUG_STOP: _bindgen_ty_3 = _bindgen_ty_3(2);
+pub const HSPDEBUG_STEPIN: _bindgen_ty_3 = _bindgen_ty_3(3);
+pub const HSPDEBUG_STEPOVER: _bindgen_ty_3 = _bindgen_ty_3(4);
+pub const HSPDEBUG_MAX: _bindgen_ty_3 = _bindgen_ty_3(5);
+#[repr(transparent)]
+#[derive(Debug, Copy, Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
+pub struct _bindgen_ty_3(pub ::std::os::raw::c_uint);
 #[repr(C)]
 #[derive(Debug, Copy, Clone, PartialOrd, Ord, PartialEq, Eq)]
 pub struct HSP3DEBUG {
@@ -781,20 +789,22 @@ impl Default for LOOPDAT {
         }
     }
 }
-pub const RUNMODE_RUN: _bindgen_ty_4 = 0;
-pub const RUNMODE_WAIT: _bindgen_ty_4 = 1;
-pub const RUNMODE_AWAIT: _bindgen_ty_4 = 2;
-pub const RUNMODE_STOP: _bindgen_ty_4 = 3;
-pub const RUNMODE_END: _bindgen_ty_4 = 4;
-pub const RUNMODE_ERROR: _bindgen_ty_4 = 5;
-pub const RUNMODE_RETURN: _bindgen_ty_4 = 6;
-pub const RUNMODE_INTJUMP: _bindgen_ty_4 = 7;
-pub const RUNMODE_ASSERT: _bindgen_ty_4 = 8;
-pub const RUNMODE_LOGMES: _bindgen_ty_4 = 9;
-pub const RUNMODE_EXITRUN: _bindgen_ty_4 = 10;
-pub const RUNMODE_RESTART: _bindgen_ty_4 = 11;
-pub const RUNMODE_MAX: _bindgen_ty_4 = 12;
-pub type _bindgen_ty_4 = ::std::os::raw::c_uint;
+pub const RUNMODE_RUN: _bindgen_ty_4 = _bindgen_ty_4(0);
+pub const RUNMODE_WAIT: _bindgen_ty_4 = _bindgen_ty_4(1);
+pub const RUNMODE_AWAIT: _bindgen_ty_4 = _bindgen_ty_4(2);
+pub const RUNMODE_STOP: _bindgen_ty_4 = _bindgen_ty_4(3);
+pub const RUNMODE_END: _bindgen_ty_4 = _bindgen_ty_4(4);
+pub const RUNMODE_ERROR: _bindgen_ty_4 = _bindgen_ty_4(5);
+pub const RUNMODE_RETURN: _bindgen_ty_4 = _bindgen_ty_4(6);
+pub const RUNMODE_INTJUMP: _bindgen_ty_4 = _bindgen_ty_4(7);
+pub const RUNMODE_ASSERT: _bindgen_ty_4 = _bindgen_ty_4(8);
+pub const RUNMODE_LOGMES: _bindgen_ty_4 = _bindgen_ty_4(9);
+pub const RUNMODE_EXITRUN: _bindgen_ty_4 = _bindgen_ty_4(10);
+pub const RUNMODE_RESTART: _bindgen_ty_4 = _bindgen_ty_4(11);
+pub const RUNMODE_MAX: _bindgen_ty_4 = _bindgen_ty_4(12);
+#[repr(transparent)]
+#[derive(Debug, Copy, Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
+pub struct _bindgen_ty_4(pub ::std::os::raw::c_uint);
 #[repr(C)]
 #[derive(Debug, Copy, Clone, PartialOrd, PartialEq)]
 pub struct HSPCTX {
@@ -951,29 +961,33 @@ impl Default for HSP3TYPEINFO {
         }
     }
 }
-pub const HSPIRQ_ONEXIT: _bindgen_ty_5 = 0;
-pub const HSPIRQ_ONERROR: _bindgen_ty_5 = 1;
-pub const HSPIRQ_ONKEY: _bindgen_ty_5 = 2;
-pub const HSPIRQ_ONCLICK: _bindgen_ty_5 = 3;
-pub const HSPIRQ_USERDEF: _bindgen_ty_5 = 4;
-pub const HSPIRQ_MAX: _bindgen_ty_5 = 5;
-pub type _bindgen_ty_5 = ::std::os::raw::c_uint;
-pub const HSPEVENT_NONE: _bindgen_ty_6 = 0;
-pub const HSPEVENT_COMMAND: _bindgen_ty_6 = 1;
-pub const HSPEVENT_HSPIRQ: _bindgen_ty_6 = 2;
-pub const HSPEVENT_GETKEY: _bindgen_ty_6 = 3;
-pub const HSPEVENT_STICK: _bindgen_ty_6 = 4;
-pub const HSPEVENT_FNAME: _bindgen_ty_6 = 5;
-pub const HSPEVENT_FREAD: _bindgen_ty_6 = 6;
-pub const HSPEVENT_FWRITE: _bindgen_ty_6 = 7;
-pub const HSPEVENT_FEXIST: _bindgen_ty_6 = 8;
-pub const HSPEVENT_FDELETE: _bindgen_ty_6 = 9;
-pub const HSPEVENT_FMKDIR: _bindgen_ty_6 = 10;
-pub const HSPEVENT_FCHDIR: _bindgen_ty_6 = 11;
-pub const HSPEVENT_FCOPY: _bindgen_ty_6 = 12;
-pub const HSPEVENT_FDIRLIST1: _bindgen_ty_6 = 13;
-pub const HSPEVENT_FDIRLIST2: _bindgen_ty_6 = 14;
-pub const HSPEVENT_GETPICSIZE: _bindgen_ty_6 = 15;
-pub const HSPEVENT_PICLOAD: _bindgen_ty_6 = 16;
-pub const HSPEVENT_MAX: _bindgen_ty_6 = 17;
-pub type _bindgen_ty_6 = ::std::os::raw::c_uint;
+pub const HSPIRQ_ONEXIT: _bindgen_ty_5 = _bindgen_ty_5(0);
+pub const HSPIRQ_ONERROR: _bindgen_ty_5 = _bindgen_ty_5(1);
+pub const HSPIRQ_ONKEY: _bindgen_ty_5 = _bindgen_ty_5(2);
+pub const HSPIRQ_ONCLICK: _bindgen_ty_5 = _bindgen_ty_5(3);
+pub const HSPIRQ_USERDEF: _bindgen_ty_5 = _bindgen_ty_5(4);
+pub const HSPIRQ_MAX: _bindgen_ty_5 = _bindgen_ty_5(5);
+#[repr(transparent)]
+#[derive(Debug, Copy, Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
+pub struct _bindgen_ty_5(pub ::std::os::raw::c_uint);
+pub const HSPEVENT_NONE: _bindgen_ty_6 = _bindgen_ty_6(0);
+pub const HSPEVENT_COMMAND: _bindgen_ty_6 = _bindgen_ty_6(1);
+pub const HSPEVENT_HSPIRQ: _bindgen_ty_6 = _bindgen_ty_6(2);
+pub const HSPEVENT_GETKEY: _bindgen_ty_6 = _bindgen_ty_6(3);
+pub const HSPEVENT_STICK: _bindgen_ty_6 = _bindgen_ty_6(4);
+pub const HSPEVENT_FNAME: _bindgen_ty_6 = _bindgen_ty_6(5);
+pub const HSPEVENT_FREAD: _bindgen_ty_6 = _bindgen_ty_6(6);
+pub const HSPEVENT_FWRITE: _bindgen_ty_6 = _bindgen_ty_6(7);
+pub const HSPEVENT_FEXIST: _bindgen_ty_6 = _bindgen_ty_6(8);
+pub const HSPEVENT_FDELETE: _bindgen_ty_6 = _bindgen_ty_6(9);
+pub const HSPEVENT_FMKDIR: _bindgen_ty_6 = _bindgen_ty_6(10);
+pub const HSPEVENT_FCHDIR: _bindgen_ty_6 = _bindgen_ty_6(11);
+pub const HSPEVENT_FCOPY: _bindgen_ty_6 = _bindgen_ty_6(12);
+pub const HSPEVENT_FDIRLIST1: _bindgen_ty_6 = _bindgen_ty_6(13);
+pub const HSPEVENT_FDIRLIST2: _bindgen_ty_6 = _bindgen_ty_6(14);
+pub const HSPEVENT_GETPICSIZE: _bindgen_ty_6 = _bindgen_ty_6(15);
+pub const HSPEVENT_PICLOAD: _bindgen_ty_6 = _bindgen_ty_6(16);
+pub const HSPEVENT_MAX: _bindgen_ty_6 = _bindgen_ty_6(17);
+#[repr(transparent)]
+#[derive(Debug, Copy, Clone, Hash, PartialOrd, Ord, PartialEq, Eq)]
+pub struct _bindgen_ty_6(pub ::std::os::raw::c_uint);

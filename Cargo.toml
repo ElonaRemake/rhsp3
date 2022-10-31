@@ -1,15 +1,20 @@
 [workspace]
 members = [
-    "crates/rhsp3_internal_plugabi",
+    "crates/rhsp3_common",
+    "crates/rhsp3_internal_abi",
+    "crates/rhsp3_internal_common",
+    "crates/rhsp3_internal_macros",
     "crates/rhsp3_plugsdk",
 ]
 
 [profile.dev]
 opt-level = "s"
 lto = false
+debug = 2
 panic = "abort"
 
 [profile.release]
 opt-level = "s"
 lto = true
+debug = 2
 panic = "abort"

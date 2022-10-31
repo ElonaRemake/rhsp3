@@ -8,4 +8,5 @@ bindgen \
   --impl-debug \
   --generate-inline-functions \
   --no-layout-tests \
+  --newtype-global-enum ".*" \
   openhsp_headers/hsp3struct.h -o src/hsp3struct.rs

@@ -1,0 +1,10 @@
+[package]
+name = "rhsp3_internal_common"
+version = "0.1.0"
+edition = "2021"
+
+description = "The internal implementation of rhsp3_common. Not public API."
+
+[dependencies]
+backtrace = "0.3.66"
+thiserror = "1.0.37"
