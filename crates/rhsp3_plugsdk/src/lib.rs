@@ -1,4 +1,4 @@
-#![warn(missing_docs)]
+pub mod var_type;
 
-pub mod ffi_type;
-pub mod hspctx;
+#[cfg(feature = "cdylib")]
+pub mod dylib_hspctx;

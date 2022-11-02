@@ -3,7 +3,7 @@
 //! This is publicly reexported in every subcrate that uses it, but this crate itself is not
 //! public API.
 
-use crate::hsp_errors::ErrorCode;
+use crate::{ctx::HspType, hsp_errors::ErrorCode};
 use backtrace::Backtrace;
 use std::{
     fmt::{Debug, Display, Formatter},
@@ -20,6 +20,14 @@ pub type Result<T> = StdResult<T, Error>;
 pub enum ErrorKind {
     #[error("Plugin SDK called from wrong thread: {0:?} != {1:?}")]
     ExecutionOnWrongThread(ThreadId, ThreadId),
+    #[error("Integer value cannot fit into an {0}: {1}")]
+    IntegerNotInRange(&'static str, i64),
+    #[error("HSP value has incorrect type. (expected {0:?}, got {1:?})")]
+    HspTypeError(HspType, HspType),
+    #[error("HSP version is too old for function `{0}`. (required 0x{1:04x}, got 0x{2:04x})")]
+    HspVersionError(&'static str, u16, u16),
+    #[error("HSP function `{1}` does not exist for type {0:?}.")]
+    FunctionNotFoundForType(HspType, &'static str),
 
     /// An error type that only exists for testing.
     #[error("[Testing error]")]
@@ -27,6 +35,9 @@ pub enum ErrorKind {
     /// A wrapped external error.
     #[error("External error encountered: {0}")]
     WrappedError(#[from] Box<dyn StdError + 'static>),
+    /// An internal error occurred.
+    #[error("Internal error {0}")]
+    StaticInternalError(&'static str),
     /// An internal error occurred.
     #[error("Internal error: {0}")]
     InternalError(String),
@@ -231,6 +242,12 @@ pub fn error_new(kind: ErrorKind) -> Error {
     Error::new(kind)
 }
 
+/// Creates a new error wrapping a given [`ErrorKind`].
+#[inline(never)]
+pub fn error_new_str(str: &'static str) -> Error {
+    Error::new(ErrorKind::StaticInternalError(str)).with_backtrace()
+}
+
 /// Contains the implementation of functions of [`Error`] that are private to the `rhsp3` project.
 pub trait ErrorPrivate {
     /// Attaches a backtrace to this error.
@@ -266,8 +283,8 @@ pub mod macro_hidden {
     }
 
     #[inline(never)]
-    pub fn internal_error_with_code(code: ErrorCode, msg: impl Display) -> Error {
-        Error::internal_error(msg.to_string()).with_error_code(code)
+    pub fn internal_error_lit_with_code(code: ErrorCode, msg: &'static str) -> Error {
+        error_new_str(msg).with_error_code(code)
     }
 }
 
@@ -312,17 +329,17 @@ macro_rules! bail {
 macro_rules! ensure {
     (code: $code:ident, $test:expr $(,)*) => {
         if !$test {
-            $crate::bail!(code: $code, "{}", stringify!($test));
+            $crate::bail_lit!(code: $code, stringify!($test));
         }
     };
     (code: $code:expr, $test:expr $(,)*) => {
         if !$test {
-            $crate::bail!(code: $code, "{}", stringify!($test));
+            $crate::bail_lit!(code: $code, stringify!($test));
         }
     };
     ($test:expr $(,)*) => {
         if !$test {
-            $crate::bail!("{}", stringify!($test));
+            $crate::bail_lit!(stringify!($test));
         }
     };
     (code: $code:ident, $test:expr, $($rest:tt)*) => {
@@ -338,6 +355,68 @@ macro_rules! ensure {
     ($test:expr, $($rest:tt)*) => {
         if !$test {
             $crate::bail!($($rest)*);
+        }
+    };
+}
+
+/// Returns from an rhsp3 function with an internal error if a condition is not met.
+///
+/// This has the same parameters as [`bail!`], but it does not parse format args, and instead
+/// simply uses a single literal string.
+#[macro_export]
+macro_rules! bail_lit {
+    (code: $code:ident, $lit:expr $(,)?) => {
+        return $crate::errors::macro_hidden::Err(
+            $crate::errors::macro_hidden::internal_error_lit_with_code(
+                $crate::hsp_errors::$code,
+                $lit,
+            ),
+        )
+    };
+    (code: $code:expr, $lit:expr $(,)?) => {
+        return $crate::errors::macro_hidden::Err(
+            $crate::errors::macro_hidden::internal_error_lit_with_code($code, $lit),
+        )
+    };
+    ($lit:expr $(,)?) => {
+        return $crate::errors::macro_hidden::Err($crate::errors::error_new_str($lit))
+    };
+}
+
+/// Returns from an rhsp3 function with an internal error if a condition is not met.
+///
+/// This has the same parameters as [`ensure!`], but it does not parse format args, and instead
+/// simply uses a single literal string.
+#[macro_export]
+macro_rules! ensure_lit {
+    (code: $code:ident, $test:expr $(,)*) => {
+        if !$test {
+            $crate::bail_lit!(code: $code, stringify!($test));
+        }
+    };
+    (code: $code:expr, $test:expr $(,)*) => {
+        if !$test {
+            $crate::bail_lit!(code: $code, stringify!($test));
+        }
+    };
+    ($test:expr $(,)*) => {
+        if !$test {
+            $crate::bail_lit!(stringify!($test));
+        }
+    };
+    (code: $code:ident, $test:expr, $lit:expr $(,)?) => {
+        if !$test {
+            $crate::bail_lit!(code: $code, $lit);
+        }
+    };
+    (code: $code:expr, $test:expr, $lit:expr $(,)?) => {
+        if !$test {
+            $crate::bail_lit!(code: $code, $lit);
+        }
+    };
+    ($test:expr, $lit:expr $(,)?) => {
+        if !$test {
+            $crate::bail_lit!($lit);
         }
     };
 }

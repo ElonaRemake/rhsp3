@@ -29,7 +29,7 @@ macro_rules! gen_error_type {
 
     };
 }
-gen_error_type!(
+gen_error_type! {
     GenericError HSPERROR_HSPERR_UNKNOWN_CODE,
     SyntaxError HSPERROR_HSPERR_SYNTAX,
     IllegalParameter HSPERROR_HSPERR_ILLEGAL_FUNCTION,
@@ -72,7 +72,7 @@ gen_error_type!(
     NoReturnValue HSPERROR_HSPERR_NORETVAL,
     SyntaxFunctionDefinition HSPERROR_HSPERR_FUNCTION_SYNTAX,
     InvalidCallback HSPERROR_HSPERR_INVALID_CALLBACK,
-);
+}
 
 /// Converts an optional rhsp3 error code to an HSP error code.
 pub fn opt_to_hsp_error(error: Option<ErrorCode>) -> hsp3struct::HSPERROR {

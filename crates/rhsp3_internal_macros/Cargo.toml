@@ -5,6 +5,10 @@ edition = "2021"
 
 description = "A shared crate for rhsp3's macros. Not public API."
 
+[features]
+plugsdk = []
+plugsdk_cdylib = []
+
 [lib]
 proc-macro = true
 doc = false

@@ -5,6 +5,10 @@ edition = "2021"
 
 description = "The internal implementation of rhsp3_common. Not public API."
 
+[features]
+plugsdk = []
+plugsdk_cdylib = []
+
 [dependencies]
 backtrace = "0.3.66"
 thiserror = "1.0.37"

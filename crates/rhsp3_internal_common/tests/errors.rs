@@ -64,7 +64,7 @@ fn bt_root_kind() -> Result<()> {
     }
 
     let x = inner();
-    println!("-"); // used to prevent TCO
+    println!("-"); // hack to prevent TCO
     x
 }
 #[inline(never)]
@@ -76,7 +76,7 @@ fn bt_root_std() -> Result<()> {
     }
 
     let x = inner();
-    println!("-"); // used to prevent TCO
+    println!("-"); // hack to prevent TCO
     x
 }
 #[inline(never)]

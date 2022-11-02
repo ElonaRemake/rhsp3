@@ -206,8 +206,9 @@ dependencies = [
  "encoding_rs",
  "log",
  "parking_lot",
- "rhsp3_common",
  "rhsp3_internal_abi",
+ "rhsp3_internal_common",
+ "rhsp3_internal_macros",
 ]
 
 [[package]]
