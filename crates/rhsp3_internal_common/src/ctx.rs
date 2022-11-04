@@ -58,5 +58,5 @@ pub fn hsp_ty_check(data: &PVal, ty: HspType, allow_undef: bool) -> Result<()> {
 pub trait HspContext {}
 
 pub trait HspExtData: Sized + 'static {
-    fn init() -> Self;
+    fn init() -> Result<Self>;
 }

@@ -6,6 +6,8 @@ macro_rules! ident {
     ($($tts:tt)*) => { syn::Ident::new(&format!($($tts)*), ::proc_macro2::Span::call_site()) }
 }
 
+mod utils;
+
 #[cfg(feature = "plugsdk")]
 mod plugsdk;
 

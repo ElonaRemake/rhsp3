@@ -1,3 +1,4 @@
+use crate::utils::{crate_root, get_id};
 use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{
@@ -10,10 +11,8 @@ enum HspParamType {
     ImplContext,
     ImplVar(Type),
     OwnedVal(Type),
-    RefVal(Type),
-    MutRefVal(Type),
-    ExtData(Type),
-    MutExtData(Type),
+    RefVal(Type, bool /* is_mut */),
+    ExtData(Type, bool /* is_mut */),
 }
 impl HspParamType {
     fn from_var(ty: &TraitBound) -> Result<HspParamType, Error> {
@@ -76,8 +75,7 @@ impl HspParamType {
         match ty {
             Type::Group(ty) => HspParamType::from_reference_ty(&ty.elem, is_mut),
             Type::Paren(ty) => HspParamType::from_reference_ty(&ty.elem, is_mut),
-            Type::Path(_) if !is_mut => Ok(HspParamType::MutRefVal(ty.clone())),
-            Type::Path(_) if is_mut => Ok(HspParamType::MutRefVal(ty.clone())),
+            Type::Path(_) => Ok(HspParamType::RefVal(ty.clone(), is_mut)),
             Type::ImplTrait(ty) => HspParamType::from_impl_trait(ty),
             _ => Err(Error::new(ty.span(), "Unrecognized type in HSP function parameters.")),
         }
@@ -110,6 +108,7 @@ fn types_for_func(func: &mut ItemFn) -> Result<Vec<HspParamType>, Error> {
     }
 
     let mut args = Vec::new();
+    let mut impl_context_count = 0;
     for arg in &mut func.sig.inputs {
         match arg {
             FnArg::Typed(param) => {
@@ -127,11 +126,14 @@ fn types_for_func(func: &mut ItemFn) -> Result<Vec<HspParamType>, Error> {
 
                 match HspParamType::from_type(&param.ty) {
                     Ok(v) => {
+                        if let HspParamType::ImplContext = v {
+                            impl_context_count += 1;
+                        }
+
                         if is_ext_arg {
                             match v {
-                                HspParamType::RefVal(ty) => args.push(HspParamType::ExtData(ty)),
-                                HspParamType::MutRefVal(ty) => {
-                                    args.push(HspParamType::MutExtData(ty))
+                                HspParamType::RefVal(ty, is_mut) => {
+                                    args.push(HspParamType::ExtData(ty, is_mut))
                                 }
                                 _ => add_error!(Error::new(
                                     arg.span(),
@@ -153,14 +155,140 @@ fn types_for_func(func: &mut ItemFn) -> Result<Vec<HspParamType>, Error> {
             }
         }
     }
+    if impl_context_count > 1 {
+        add_error!(Error::new(
+            func.sig.inputs.span(),
+            "Cannot have more than one `HspContext` parameter."
+        ));
+    }
     match err {
         Some(x) => Err(x),
         None => Ok(args),
     }
 }
 
-pub fn hsp_export(_: TokenStream, item: TokenStream) -> Result<TokenStream, Error> {
+#[cfg(feature = "plugsdk_cdylib")]
+fn make_dylib_shim(
+    root: &TokenStream,
+    item: &ItemFn,
+    args: &[HspParamType],
+) -> Result<TokenStream, Error> {
+    let mut param_names = Vec::new();
+    let mut param_types = Vec::new();
+    let mut param_args = Vec::new();
+    let mut simple_load = Vec::new();
+    let mut load_ref = Vec::new();
+    for (i, arg) in args.iter().enumerate() {
+        match arg {
+            HspParamType::ImplContext => {
+                param_args.push(quote! { &mut _hsp3storedctx.context });
+            }
+            HspParamType::ImplVar(ty) => {
+                let in_ident = ident!("_hsp3rawparam_{i}");
+                let out_ident = ident!("_hsp3var_{i}");
+                param_names.push(quote! { #in_ident });
+                param_types.push(quote! { <#ty as #root::VarTypeOwnedCdylib>::HspPointerParam });
+                simple_load.push(quote! {
+                    let mut #out_ident = #root::dylib::DylibVar::new(#in_ident)?;
+                });
+                param_args.push(quote! { &mut #out_ident });
+            }
+            HspParamType::OwnedVal(ty) => {
+                let in_ident = ident!("_hsp3rawparam_{i}");
+                let out_ident = ident!("_hsp3owned_{i}");
+                param_names.push(quote! { #in_ident });
+                param_types.push(quote! { <#ty as #root::VarTypeSealed>::HspParam });
+                simple_load.push(quote! {
+                    let #out_ident =
+                        <#ty as #root::VarTypeOwnedSealed>::from_hsp_param(#in_ident)?;
+                });
+                param_args.push(quote! { #out_ident });
+            }
+            HspParamType::RefVal(ty, is_mut) => {
+                let in_ident = ident!("_hsp3rawparam_{i}");
+                let out_ident = ident!("_hsp3ref_{i}");
+                param_names.push(quote! { #in_ident });
+                param_types.push(quote! { <#ty as #root::VarTypeSealed>::HspParam });
+                load_ref.push((in_ident, out_ident.clone(), ty.clone(), *is_mut));
+                param_args.push(quote! { #out_ident });
+            }
+            HspParamType::ExtData(ty, _) => {
+                let lock_ident = ident!("_hsp3extdatalock_{i}");
+                let out_ident = ident!("_hsp3extdata_{i}");
+                simple_load.push(quote! {
+                    let mut #lock_ident = _hsp3storedctx.get_ext_data::<#ty>()?;
+                    let mut #out_ident = #lock_ident.borrow_mut();
+                });
+                param_args.push(quote! { &mut *#out_ident });
+            }
+        }
+    }
+
+    let item_name = &item.sig.ident;
+    let mut core_func = quote! {
+        #root::HspReturnTy::into_result(#item_name(#(#param_args,)*))
+    };
+    for (in_ident, out_ident, ty, is_mut) in load_ref {
+        let func = if !is_mut {
+            ident!("from_hsp_param_ref")
+        } else {
+            ident!("from_hsp_param_mut")
+        };
+        core_func = quote! {
+            <#ty as #root::VarTypeSealed>::#func(#in_ident, |#out_ident| #core_func)
+        }
+    }
+
+    let item_name_str = item.sig.ident.to_string();
+
+    let id = get_id();
+    let shim_impl_name = ident!("__rhsp3_dylib_shim_impl_{id}");
+    let shim_name = ident!("__rhsp3_dylib_shim_{id}");
+    let inner_shim_name = ident!("__rhsp3_dylib_inner_shim_{id}");
+    Ok(quote! {
+        unsafe fn #shim_impl_name(#(#param_names: #param_types,)*) -> i32 {
+            unsafe fn #inner_shim_name(
+                _hsp3storedctx: &mut #root::dylib::DylibContext,
+                #(#param_names: #param_types,)*
+            ) -> #root::Result<i32> {
+                #(#simple_load)*
+                #core_func
+            }
+            match #root::dylib::with_active_ctx(|_hsp3storedctx| {
+                #inner_shim_name(_hsp3storedctx, #(#param_names,)*)
+            }) {
+                Ok(v) => v,
+                Err(_) => todo!(),
+            }
+        }
+
+        #[cfg(windows)]
+        #[export_name = #item_name_str]
+        pub unsafe extern "stdcall-unwind" fn #shim_name(
+            #(#param_names: #param_types,)*
+        ) -> i32 {
+            #shim_impl_name(#(#param_names,)*)
+        }
+
+        #[cfg(not(windows))]
+        #[export_name = #item_name_str]
+        pub unsafe extern "C-unwind" fn #shim_name(
+            #(#param_names: #param_types,)*
+        ) -> i32 {
+            #shim_impl_name(#(#param_names,)*)
+        }
+
+        #[cfg(windows)]
+        type FuncPtr = unsafe extern "stdcall-unwind" fn(#(#param_types,)*) -> i32;
+
+        #[cfg(not(windows))]
+        type FuncPtr = unsafe extern "C-unwind" fn(#(#param_types,)*) -> i32;
+    })
+}
+
+pub fn hsp_export(attr: TokenStream, item: TokenStream) -> Result<TokenStream, Error> {
     let mut func = parse2::<ItemFn>(item)?;
+    let root = crate_root(attr.span(), "rhsp3_plugsdk")?;
 
     if func.sig.asyncness.is_some() {
         Err(Error::new(
@@ -179,11 +307,19 @@ pub fn hsp_export(_: TokenStream, item: TokenStream) -> Result<TokenStream, Erro
         ))
     } else {
         let args = types_for_func(&mut func)?;
-        println!("{:#?}", args);
+
+        #[cfg(feature = "plugsdk_cdylib")]
+        let dll_shim = make_dylib_shim(&root, &func, &args)?;
+        #[cfg(not(feature = "plugsdk_cdylib"))]
+        let dll_shim = quote! {};
 
         //Err(Error::new(func.span(), "Not yet implemented."))
         Ok(quote! {
             #func
+            const _: () = {
+                #dll_shim
+                ()
+            };
         })
     }
 }

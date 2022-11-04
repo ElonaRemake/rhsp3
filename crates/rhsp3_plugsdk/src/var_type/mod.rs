@@ -16,11 +16,26 @@ pub trait VarTypeOwnedCdylib {}
 impl<T> VarTypeOwnedCdylib for T {}
 
 #[cfg(feature = "cdylib")]
-use crate::dylib_hspctx::VarTypeOwnedCdylib;
+pub use crate::dylib_hspctx::VarTypeOwnedCdylib;
 
 pub unsafe trait VarTypeSealed {
     type HspParam;
     const PARAM_NAME: HspParamType;
+
+    unsafe fn from_hsp_param_ref<R>(
+        param: Self::HspParam,
+        callback: impl FnOnce(&Self) -> Result<R>,
+    ) -> Result<R>;
+
+    unsafe fn from_hsp_param_mut<R>(
+        param: Self::HspParam,
+        callback: impl FnOnce(&mut Self) -> Result<R>,
+    ) -> Result<R>;
+
+    unsafe fn into_hsp_param_mut<R>(
+        self,
+        callback: impl FnOnce(&mut Self::HspParam) -> Result<R>,
+    ) -> Result<R>;
 }
 pub unsafe trait VarTypeOwnedSealed: VarTypeSealed + Sized {
     unsafe fn from_hsp_param(param: Self::HspParam) -> Result<Self>;
@@ -38,6 +53,28 @@ pub unsafe trait VarType: VarTypeSealed {}
 pub unsafe trait VarTypeOwned:
     VarType + VarTypeOwnedSealed + Sized + VarTypeOwnedCdylib
 {
+}
+
+/// Represents a type that can be returned from a HSP plugin function.
+pub trait HspReturnTy {
+    /// Converts the type into a result.
+    fn into_result(self) -> Result<i32>;
+}
+impl HspReturnTy for () {
+    fn into_result(self) -> Result<i32> {
+        Ok(0)
+    }
+}
+impl HspReturnTy for Result<()> {
+    fn into_result(self) -> Result<i32> {
+        self?;
+        Ok(0)
+    }
+}
+impl HspReturnTy for Result<i32> {
+    fn into_result(self) -> Result<i32> {
+        self
+    }
 }
 
 mod impl_numeric;

@@ -1,3 +1,5 @@
+#![feature(c_unwind)]
+
 use rand::{
     rngs::{adapter::ReseedingRng, OsRng},
     Rng, SeedableRng,
@@ -5,9 +7,7 @@ use rand::{
 use rand_chacha::{ChaCha12Core, ChaCha12Rng};
 use rhsp3_common::*;
 use rhsp3_plugsdk::{hsp_export, Var};
-use std::{cell::RefCell, ops::Range};
-
-// TODO: Refactor entire system here to store data in the context rather than in a thread local.
+use std::ops::Range;
 
 fn new_seeded_rng() -> RngData {
     RngData::ReseedingRng(ReseedingRng::new(
@@ -22,8 +22,8 @@ enum RngData {
     FixedRng(ChaCha12Rng),
 }
 impl HspExtData for RngData {
-    fn init() -> Self {
-        new_seeded_rng()
+    fn init() -> Result<Self> {
+        Ok(new_seeded_rng())
     }
 }
 impl RngData {

@@ -7,6 +7,11 @@ edition = "2021"
 default = ["cdylib"]
 cdylib = ["rhsp3_plugsdk/cdylib"]
 
+[[example]]
+name = "exrand_hpi_cdylib"
+crate-type = ["cdylib"]
+required-features = ["cdylib"]
+
 [dependencies]
 rand = "0.8.5"
 rand_chacha = "0.3.1"
