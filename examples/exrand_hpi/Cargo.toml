@@ -1,0 +1,15 @@
+[package]
+name = "exrand_hpi"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+default = ["cdylib"]
+cdylib = ["rhsp3_plugsdk/cdylib"]
+
+[dependencies]
+rand = "0.8.5"
+rand_chacha = "0.3.1"
+
+rhsp3_common = { path = "../../crates/rhsp3_common" }
+rhsp3_plugsdk = { path = "../../crates/rhsp3_plugsdk" }

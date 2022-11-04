@@ -44,6 +44,9 @@ pub enum ErrorKind {
     /// A message that should be shown directly to the user.
     #[error("{0}")]
     Message(String),
+    /// A generic error used to return a status code to the caller.
+    #[error("Generic error occurred.")]
+    GenericError,
 }
 
 /// The error type used by rhsp3.
@@ -76,6 +79,12 @@ impl Error {
     #[inline(never)]
     pub fn internal_error(msg: impl Display) -> Self {
         Error::new(ErrorKind::InternalError(msg.to_string())).with_backtrace()
+    }
+
+    /// Creates a new error containing an HSP error code.
+    #[inline(never)]
+    pub fn code(code: ErrorCode) -> Self {
+        Error::new(ErrorKind::GenericError).with_error_code(code)
     }
 
     #[inline(never)]
@@ -300,7 +309,7 @@ macro_rules! bail {
     (code: $code:ident, $($rest:tt)*) => {
         return $crate::errors::macro_hidden::Err(
             $crate::errors::macro_hidden::internal_error_with_code(
-                $crate::hsp_errors::$code, format_args!($($rest)*),
+                $crate::hsp_errors::ErrorCode::$code, format_args!($($rest)*),
             ),
         )
     };
@@ -359,7 +368,7 @@ macro_rules! ensure {
     };
 }
 
-/// Returns from an rhsp3 function with an internal error if a condition is not met.
+/// Returns from an rhsp3 function with an internal error.
 ///
 /// This has the same parameters as [`bail!`], but it does not parse format args, and instead
 /// simply uses a single literal string.
@@ -368,7 +377,7 @@ macro_rules! bail_lit {
     (code: $code:ident, $lit:expr $(,)?) => {
         return $crate::errors::macro_hidden::Err(
             $crate::errors::macro_hidden::internal_error_lit_with_code(
-                $crate::hsp_errors::$code,
+                $crate::hsp_errors::ErrorCode::$code,
                 $lit,
             ),
         )
@@ -417,6 +426,37 @@ macro_rules! ensure_lit {
     ($test:expr, $lit:expr $(,)?) => {
         if !$test {
             $crate::bail_lit!($lit);
+        }
+    };
+}
+
+/// Returns from an rhsp3 function with an error code only.
+#[macro_export]
+macro_rules! bail_code {
+    ($code:ident $(,)?) => {
+        return $crate::errors::macro_hidden::Err($crate::errors::Error::code(
+            $crate::hsp_errors::ErrorCode::$code,
+        ))
+    };
+    ($code:expr $(,)?) => {
+        return $crate::errors::macro_hidden::Err($crate::errors::Error::code($code))
+    };
+}
+
+/// Returns from an rhsp3 function with an error code only if a condition is not met.
+///
+/// This has the same parameters as [`ensure!`], but it does not parse format args, and instead
+/// simply uses a single code parameter.
+#[macro_export]
+macro_rules! ensure_code {
+    ($test:expr, $code:ident $(,)*) => {
+        if !$test {
+            $crate::bail_code!($code);
+        }
+    };
+    ($test:expr, $code:expr $(,)*) => {
+        if !$test {
+            $crate::bail_code!($code);
         }
     };
 }

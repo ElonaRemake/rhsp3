@@ -24,10 +24,7 @@ impl HspVarProcWrapper {
         HspVarProcWrapper { ty, procs }
     }
 
-    pub unsafe fn get_ptr(&self, val: *const PVal) -> Result<*const PDAT> {
-        Ok(check_ptr_exists!(self, GetPtr)(val as *mut _) as *const _)
-    }
-    pub unsafe fn get_ptr_mut(&self, val: *mut PVal) -> Result<*mut PDAT> {
+    pub unsafe fn get_ptr(&self, val: *mut PVal) -> Result<*mut PDAT> {
         Ok(check_ptr_exists!(self, GetPtr)(val))
     }
 }

@@ -1,12 +1,12 @@
 use rhsp3_internal_common::{errors::*, plugin::HspParamType};
-use std::borrow::Borrow;
+use std::{borrow::Borrow, fmt::Debug};
 
 /// Represents an variable passed in from HSP code.
-pub trait Var<T: VarTypeOwned> {
+pub trait Var<T: VarTypeOwned>: Debug + Sized {
     /// Sets the value of the variable.
     fn set(&mut self, value: impl Borrow<T::VarSetParam>) -> Result<()>;
     /// Gets the value of the variable.
-    fn get<'a>(&'a self) -> Result<T::VarReturn<'a>>;
+    fn get<'a>(&'a mut self) -> Result<T::VarReturn<'a>>;
 }
 
 #[cfg(not(feature = "cdylib"))]
@@ -40,4 +40,4 @@ pub unsafe trait VarTypeOwned:
 {
 }
 
-mod impl_integral;
+mod impl_numeric;

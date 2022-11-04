@@ -1,5 +1,5 @@
 use crate::dylib_hspctx::var_proc::HspVarProcWrapper;
-use rhsp3_internal_abi::hsp3struct::{HspVarProc, HSP3TYPEINFO, HSPEXINFO};
+use rhsp3_internal_abi::hsp3struct::{HspVarProc, PVal, APTR, HSP3TYPEINFO, HSPEXINFO};
 use rhsp3_internal_common::{
     bail_lit,
     ctx::{to_hsp_type, HspType},
@@ -22,6 +22,7 @@ pub(super) fn set_hspctx_ptr(ptr: &HSP3TYPEINFO) -> Result<()> {
     HSP_VERSION.store(version as u16, Ordering::Relaxed);
     Ok(())
 }
+#[inline(always)]
 pub(super) fn check_version(proc_name: &'static str, min_version: u16) -> Result<()> {
     let ver = HSP_VERSION.load(Ordering::Relaxed);
     if ver < min_version {
@@ -43,7 +44,9 @@ macro_rules! fn_wrapper_exinfo {
         ($($param:ident : $param_ty:ty),* $(,)?) -> $return_ty:ty
     ) => {
         $vis unsafe fn $proc_name($($param: $param_ty,)*) -> Result<$return_ty> {
-            check_version(stringify!($ptr_name), $min_version)?;
+            if $min_version > 0x3000 {
+                check_version(stringify!($ptr_name), $min_version)?;
+            }
 
             let ptr = &*get_exinfo()?;
             let func = ptr.$ptr_name;
@@ -62,4 +65,18 @@ fn_wrapper_exinfo! {
 pub unsafe fn get_var_proc(ty: HspType) -> Result<HspVarProcWrapper> {
     let proc = get_var_proc_internal(to_hsp_type(ty) as i32)?;
     Ok(HspVarProcWrapper::new(ty, proc))
+}
+
+fn_wrapper_exinfo! {
+    0x3000, pub get_va, HspFunc_prm_getva,
+    (pval: *mut *mut PVal) -> APTR
+}
+fn_wrapper_exinfo! {
+    0x3000, set_va_internal, HspFunc_prm_setva,
+    (pval: *mut PVal, aptr: APTR, ty: c_int, ptr: *const c_void) -> ()
+}
+pub unsafe fn set_va(pval: *mut *mut PVal, ty: HspType, ptr: *const c_void) -> Result<()> {
+    let va = get_va(pval)?;
+    set_va_internal(*pval, va, to_hsp_type(ty) as c_int, ptr)?;
+    Ok(())
 }

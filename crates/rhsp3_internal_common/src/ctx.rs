@@ -44,8 +44,11 @@ pub fn to_hsp_type(ty: HspType) -> c_short {
         HspType::ComStruct => HSPVAR_FLAG_COMSTRUCT as c_short,
     }
 }
-pub fn hsp_ty_check(data: &PVal, ty: HspType) -> Result<()> {
-    if data.flag != to_hsp_type(ty) {
+pub fn hsp_is_undefined(data: &PVal) -> bool {
+    data.flag == to_hsp_type(HspType::Undefined)
+}
+pub fn hsp_ty_check(data: &PVal, ty: HspType, allow_undef: bool) -> Result<()> {
+    if data.flag != to_hsp_type(ty) || (allow_undef && hsp_is_undefined(data)) {
         Err(error_new(ErrorKind::HspTypeError(ty, from_hsp_type(data.flag)?)).with_backtrace())
     } else {
         Ok(())
@@ -53,3 +56,7 @@ pub fn hsp_ty_check(data: &PVal, ty: HspType) -> Result<()> {
 }
 
 pub trait HspContext {}
+
+pub trait HspExtData: Sized + 'static {
+    fn init() -> Self;
+}

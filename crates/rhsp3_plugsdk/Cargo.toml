@@ -7,6 +7,7 @@ edition = "2021"
 cdylib = ["rhsp3_internal_macros/plugsdk_cdylib", "rhsp3_internal_common/plugsdk_cdylib"]
 
 [dependencies]
+anymap = "1.0.0-beta.2"
 encoding_rs = "0.8.31"
 log = "0.4.17"
 parking_lot = { version = "0.12.1", features = ["hardware-lock-elision"] }

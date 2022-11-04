@@ -3,9 +3,9 @@
 
 #[doc(inline)]
 pub use rhsp3_internal_common::{
-    bail, bail_lit,
-    ctx::HspContext,
-    ensure, ensure_lit,
+    bail, bail_code, bail_lit,
+    ctx::{HspContext, HspExtData},
+    ensure, ensure_code, ensure_lit,
     errors::{Error, ErrorWrapper, Result},
     hsp_errors::ErrorCode,
     plugin::HspPlugin,
