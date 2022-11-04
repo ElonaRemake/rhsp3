@@ -1,5 +1,5 @@
 use crate::dylib_hspctx::var_proc::HspVarProcWrapper;
-use rhsp3_internal_abi::hsp3struct::{HspVarProc, PVal, APTR, HSP3TYPEINFO, HSPEXINFO};
+use rhsp3_internal_abi::hsp3struct::*;
 use rhsp3_internal_common::{
     bail_lit,
     ctx::{to_hsp_type, HspType},
@@ -79,4 +79,9 @@ pub unsafe fn set_va(pval: *mut *mut PVal, ty: HspType, ptr: *const c_void) -> R
     let va = get_va(pval)?;
     set_va_internal(*pval, va, to_hsp_type(ty) as c_int, ptr)?;
     Ok(())
+}
+
+fn_wrapper_exinfo! {
+    0x3000, pub put_error, HspFunc_puterror,
+    (error: HSPERROR) -> ()
 }

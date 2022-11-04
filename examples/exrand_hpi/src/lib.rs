@@ -4,22 +4,22 @@ use rand::{
     rngs::{adapter::ReseedingRng, OsRng},
     Rng, SeedableRng,
 };
-use rand_chacha::{ChaCha12Core, ChaCha12Rng};
+use rand_chacha::{ChaCha8Core, ChaCha8Rng};
 use rhsp3_common::*;
 use rhsp3_plugsdk::{hsp_export, Var};
 use std::ops::Range;
 
 fn new_seeded_rng() -> RngData {
     RngData::ReseedingRng(ReseedingRng::new(
-        ChaCha12Core::from_rng(OsRng).expect("Could not retrieve randomness from `OsRng`."),
+        ChaCha8Core::from_rng(OsRng).expect("Could not retrieve randomness from `OsRng`."),
         16 * 1024,
         OsRng,
     ))
 }
 
 enum RngData {
-    ReseedingRng(ReseedingRng<ChaCha12Core, OsRng>),
-    FixedRng(ChaCha12Rng),
+    ReseedingRng(ReseedingRng<ChaCha8Core, OsRng>),
+    FixedRng(ChaCha8Rng),
 }
 impl HspExtData for RngData {
     fn init() -> Result<Self> {
@@ -36,19 +36,19 @@ impl RngData {
 }
 
 #[hsp_export]
-fn exrand_randomize(#[ext_data] rng: &mut RngData, seed: i32) -> Result<()> {
-    *rng = RngData::FixedRng(ChaCha12Rng::seed_from_u64(seed as u64));
+fn ex_randomize(#[ext_data] rng: &mut RngData, seed: i32) -> Result<()> {
+    *rng = RngData::FixedRng(ChaCha8Rng::seed_from_u64(seed as u64));
     Ok(())
 }
 
 #[hsp_export]
-fn exrand_randomize_by_time(#[ext_data] rng: &mut RngData) -> Result<()> {
+fn ex_randomize_by_time(#[ext_data] rng: &mut RngData) -> Result<()> {
     *rng = new_seeded_rng();
     Ok(())
 }
 
 #[hsp_export]
-fn exrand_rnd(#[ext_data] rng: &mut RngData, out: &mut impl Var<i32>, max: i32) -> Result<()> {
+fn ex_rnd(#[ext_data] rng: &mut RngData, out: &mut impl Var<i32>, max: i32) -> Result<()> {
     ensure_code!(max >= 0, IllegalParameter);
     let val = rng.gen_range(0..max);
     out.set(val)?;
@@ -56,7 +56,7 @@ fn exrand_rnd(#[ext_data] rng: &mut RngData, out: &mut impl Var<i32>, max: i32) 
 }
 
 #[hsp_export]
-fn exrand_rnd2(
+fn ex_rnd2(
     #[ext_data] rng: &mut RngData,
     out: &mut impl Var<i32>,
     min: i32,
@@ -67,3 +67,5 @@ fn exrand_rnd2(
     out.set(val)?;
     Ok(())
 }
+
+rhsp3_plugsdk::hpi_root!(ExrandHpi);

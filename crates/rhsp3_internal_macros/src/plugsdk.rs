@@ -254,12 +254,11 @@ fn make_dylib_shim(
                 #(#simple_load)*
                 #core_func
             }
-            match #root::dylib::with_active_ctx(|_hsp3storedctx| {
-                #inner_shim_name(_hsp3storedctx, #(#param_names,)*)
-            }) {
-                Ok(v) => v,
-                Err(_) => todo!(),
-            }
+            #root::dylib::check_error(|| {
+                #root::dylib::with_active_ctx(|_hsp3storedctx| {
+                    #inner_shim_name(_hsp3storedctx, #(#param_names,)*)
+                })
+            })
         }
 
         #[cfg(windows)]

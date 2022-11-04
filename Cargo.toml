@@ -12,9 +12,11 @@ members = [
 opt-level = "s"
 lto = false
 debug = 2
+panic = "abort"
 
 [profile.release]
 opt-level = "s"
 lto = true
 debug = 0
 strip = "debuginfo"
+panic = "abort"

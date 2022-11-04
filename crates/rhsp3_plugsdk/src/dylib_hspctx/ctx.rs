@@ -1,10 +1,13 @@
+use crate::dylib_hspctx::ctx_fns::put_error;
 use anymap::AnyMap;
+use log::error;
 use rhsp3_internal_abi::hsp3struct::{HSP3TYPEINFO, HSPCTX, HSPEXINFO};
 use rhsp3_internal_common::{
     bail_lit,
     ctx::{HspContext, HspExtData},
     ensure_lit,
     errors::*,
+    hsp_errors::to_hsp_error,
 };
 use std::{
     cell::{RefCell, RefMut},
@@ -81,18 +84,41 @@ pub fn with_active_ctx<R>(callback: impl FnOnce(&mut DylibContext) -> Result<R>)
 pub unsafe fn set_active_ctx(ctx: *mut HSP3TYPEINFO) -> Result<()> {
     let ctx = &*ctx;
 
+    // Build the new DylibContext
     let box_ctx = Box::leak(Box::new(RefCell::new(DylibContext {
         target_thread: current().id(),
         context: DylibHspContext::from_ptr(ctx),
         map: AnyMap::new(),
     })));
 
+    // Store the DylibContext
     let old_ctx =
         ACTIVE_CTX.compare_exchange(null_mut(), box_ctx, Ordering::SeqCst, Ordering::SeqCst);
     if old_ctx.is_err() {
         std::mem::drop(Box::from_raw(box_ctx));
         bail_lit!("`set_active_ctx` called twice?");
     }
+
+    // Setup other initialization steps
     crate::dylib_hspctx::ctx_fns::set_hspctx_ptr(ctx)?;
+    #[cfg(not(panic = "abort"))]
+    std::panic::always_abort(); // we need this for safety, due to the mixed exception handling.
+
     Ok(())
+}
+
+pub unsafe fn check_error(func: impl FnOnce() -> Result<i32>) -> i32 {
+    match func() {
+        Ok(v) => v,
+        Err(e) => {
+            if e.backtrace().is_some() {
+                error!("Internal error occurred: {}", e);
+                error!("{:?}", e.backtrace().unwrap());
+            }
+            match put_error(to_hsp_error(e.error_code())) {
+                Ok(_) => unreachable!(),
+                Err(e) => panic!("Failed to throw HSP error: {e:?}"),
+            }
+        }
+    }
 }
