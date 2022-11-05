@@ -24,12 +24,12 @@ pub enum HspType {
 pub fn from_hsp_type(ty: c_short) -> Result<HspType> {
     match ty as u32 {
         HSPVAR_FLAG_NONE => Ok(HspType::Undefined),
-        HSPVAR_FLAG_LABEL => Ok(HspType::Undefined),
-        HSPVAR_FLAG_STR => Ok(HspType::Undefined),
-        HSPVAR_FLAG_DOUBLE => Ok(HspType::Undefined),
-        HSPVAR_FLAG_INT => Ok(HspType::Undefined),
-        HSPVAR_FLAG_STRUCT => Ok(HspType::Undefined),
-        HSPVAR_FLAG_COMSTRUCT => Ok(HspType::Undefined),
+        HSPVAR_FLAG_LABEL => Ok(HspType::Label),
+        HSPVAR_FLAG_STR => Ok(HspType::String),
+        HSPVAR_FLAG_DOUBLE => Ok(HspType::Double),
+        HSPVAR_FLAG_INT => Ok(HspType::Int),
+        HSPVAR_FLAG_STRUCT => Ok(HspType::Struct),
+        HSPVAR_FLAG_COMSTRUCT => Ok(HspType::ComStruct),
         _ => Err(error_new_str("`to_hsp_type` passed invalid value?")),
     }
 }
@@ -44,11 +44,8 @@ pub fn to_hsp_type(ty: HspType) -> c_short {
         HspType::ComStruct => HSPVAR_FLAG_COMSTRUCT as c_short,
     }
 }
-pub fn hsp_is_undefined(data: &PVal) -> bool {
-    data.flag == to_hsp_type(HspType::Undefined)
-}
-pub fn hsp_ty_check(data: &PVal, ty: HspType, allow_undef: bool) -> Result<()> {
-    if data.flag != to_hsp_type(ty) || (allow_undef && hsp_is_undefined(data)) {
+pub fn hsp_ty_check(data: &PVal, ty: HspType) -> Result<()> {
+    if data.flag != to_hsp_type(ty) {
         Err(error_new(ErrorKind::HspTypeError(ty, from_hsp_type(data.flag)?)).with_backtrace())
     } else {
         Ok(())

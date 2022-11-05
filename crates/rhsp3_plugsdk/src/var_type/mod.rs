@@ -20,7 +20,7 @@ pub use crate::dylib_hspctx::VarTypeOwnedCdylib;
 
 pub unsafe trait VarTypeSealed {
     type HspParam;
-    const PARAM_NAME: HspParamType;
+    const PARAM_TYPE: HspParamType;
 
     unsafe fn from_hsp_param_ref<R>(
         param: Self::HspParam,
@@ -43,7 +43,7 @@ pub unsafe trait VarTypeOwnedSealed: VarTypeSealed + Sized {
 
     type VarSetParam;
     type VarReturn<'a>: Sized;
-    const VAR_PARAM_NAME: HspParamType;
+    const VAR_PARAM_TYPE: HspParamType;
 }
 
 /// Represents a type that can be used as a parameter in a HSP plugin function.

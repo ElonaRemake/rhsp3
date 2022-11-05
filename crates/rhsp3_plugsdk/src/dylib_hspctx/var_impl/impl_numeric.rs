@@ -10,15 +10,11 @@ macro_rules! integral_type {
     ($ty:ty) => {
         unsafe impl VarTypeOwnedCdylib for $ty {
             type HspPointerParam = *mut PVal;
-            unsafe fn early_ty_check(ptr: &mut Self::HspPointerParam) -> Result<()> {
-                hsp_ty_check(&**ptr, HspType::Int, true)?;
-                if hsp_is_undefined(&**ptr) {
-                    Self::set_hsp_pointer(ptr, &0)?;
-                }
-                Ok(())
+            unsafe fn early_ty_check(ptr: Self::HspPointerParam) -> Result<()> {
+                hsp_ty_check(&*ptr, HspType::Int)
             }
             unsafe fn set_hsp_pointer(
-                ptr: &mut Self::HspPointerParam,
+                ptr: Self::HspPointerParam,
                 value: &Self::VarSetParam,
             ) -> Result<()> {
                 let raw_val = Self::to_hsp_param(*value)?;
@@ -26,10 +22,10 @@ macro_rules! integral_type {
                 Ok(())
             }
             unsafe fn get_hsp_pointer<'a>(
-                ptr: &mut Self::HspPointerParam,
+                ptr: Self::HspPointerParam,
             ) -> Result<Self::VarReturn<'a>> {
                 let proc = ctx_fns::get_var_proc(HspType::Int)?;
-                let ptr = proc.get_ptr(*ptr)? as *mut i32;
+                let ptr = proc.get_ptr(ptr)? as *mut i32;
                 Self::from_hsp_param(*ptr)
             }
         }

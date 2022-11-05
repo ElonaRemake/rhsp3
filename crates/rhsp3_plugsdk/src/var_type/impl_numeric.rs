@@ -14,7 +14,7 @@ macro_rules! integral_type {
     ($ty:ty) => {
         unsafe impl VarTypeSealed for $ty {
             type HspParam = i32;
-            const PARAM_NAME: HspParamType = HspParamType::Int;
+            const PARAM_TYPE: HspParamType = HspParamType::Int;
 
             unsafe fn from_hsp_param_ref<R>(
                 param: Self::HspParam,
@@ -49,7 +49,7 @@ macro_rules! integral_type {
 
             type VarSetParam = $ty;
             type VarReturn<'a> = $ty;
-            const VAR_PARAM_NAME: HspParamType = HspParamType::PVal;
+            const VAR_PARAM_TYPE: HspParamType = HspParamType::PVal;
         }
         unsafe impl VarType for $ty {}
         unsafe impl VarTypeOwned for $ty {}

@@ -13,6 +13,7 @@ crate-type = ["cdylib"]
 required-features = ["cdylib"]
 
 [dependencies]
+log = "0.4.17"
 rand = "0.8.5"
 rand_chacha = "0.3.1"
 

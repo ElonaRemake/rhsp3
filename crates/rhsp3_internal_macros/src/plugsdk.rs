@@ -1,4 +1,4 @@
-use crate::utils::{crate_root, get_id};
+use crate::utils::{crate_root, get_ident_id, get_registration_id};
 use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{
@@ -239,9 +239,9 @@ fn make_dylib_shim(
         }
     }
 
-    let item_name_str = item.sig.ident.to_string();
+    let item_link_name = format!("__rhsp3_dylib_fn__{}", item.sig.ident.to_string());
 
-    let id = get_id();
+    let id = get_ident_id();
     let shim_impl_name = ident!("__rhsp3_dylib_shim_impl_{id}");
     let shim_name = ident!("__rhsp3_dylib_shim_{id}");
     let inner_shim_name = ident!("__rhsp3_dylib_inner_shim_{id}");
@@ -262,7 +262,7 @@ fn make_dylib_shim(
         }
 
         #[cfg(windows)]
-        #[export_name = #item_name_str]
+        #[export_name = #item_link_name]
         pub unsafe extern "stdcall-unwind" fn #shim_name(
             #(#param_names: #param_types,)*
         ) -> i32 {
@@ -270,7 +270,7 @@ fn make_dylib_shim(
         }
 
         #[cfg(not(windows))]
-        #[export_name = #item_name_str]
+        #[export_name = #item_link_name]
         pub unsafe extern "C-unwind" fn #shim_name(
             #(#param_names: #param_types,)*
         ) -> i32 {
@@ -282,6 +282,56 @@ fn make_dylib_shim(
 
         #[cfg(not(windows))]
         type FuncPtr = unsafe extern "C-unwind" fn(#(#param_types,)*) -> i32;
+    })
+}
+
+fn register_prototypes(
+    root: &TokenStream,
+    item: &ItemFn,
+    args: &[HspParamType],
+) -> Result<TokenStream, Error> {
+    let plugin = quote! { #root::reexport::rhsp3_internal_common::plugin };
+
+    let mut args_ast = Vec::new();
+    for arg in args {
+        match arg {
+            HspParamType::ImplContext => {}
+            HspParamType::ImplVar(ty) => {
+                args_ast.push(quote! { <#ty as #root::VarTypeOwnedSealed>::VAR_PARAM_TYPE });
+            }
+            HspParamType::OwnedVal(ty) | HspParamType::RefVal(ty, _) => {
+                args_ast.push(quote! { <#ty as #root::VarTypeSealed>::PARAM_TYPE });
+            }
+            HspParamType::ExtData(_, _) => {}
+        }
+    }
+    if args_ast.len() > 4 {
+        return Err(Error::new(
+            item.sig.inputs.span(),
+            "Functions cannot take more than 4 parameters exposed to HSP.",
+        ));
+    }
+
+    let reg_id = get_registration_id();
+    let item_name = item.sig.ident.to_string();
+    let item_link_name = format!("__rhsp3_dylib_fn__{}", item.sig.ident.to_string());
+    Ok(quote! {
+        impl<'a> #root::registration::Registration<#reg_id>
+            for crate::__rhsp3_root::GatherPrototypes<'a>
+        {
+            #[inline(always)]
+            fn run_chain(&self) {
+                self.0.borrow_mut().push(#plugin::HspFunctionPrototype {
+                    name: #item_name.into(),
+                    link_name: #item_link_name.into(),
+                    params: (&[#(#args_ast,)*] as &[#plugin::HspParamType]).into(),
+                });
+
+                use #root::registration::{DerefRampChainA, DerefRampChainB};
+                let helper = #root::registration::DerefRamp::<{ #reg_id + 1 }, _>(self);
+                (&helper).run_chain();
+            }
+        }
     })
 }
 
@@ -312,11 +362,16 @@ pub fn hsp_export(attr: TokenStream, item: TokenStream) -> Result<TokenStream, E
         #[cfg(not(feature = "plugsdk_cdylib"))]
         let dll_shim = quote! {};
 
+        let register_prototypes = register_prototypes(&root, &func, &args)?;
+
         //Err(Error::new(func.span(), "Not yet implemented."))
         Ok(quote! {
             #func
+
+            #[allow(deprecated)]
             const _: () = {
                 #dll_shim
+                #register_prototypes
                 ()
             };
         })

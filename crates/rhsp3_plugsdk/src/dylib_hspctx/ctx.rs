@@ -1,6 +1,6 @@
 use crate::dylib_hspctx::ctx_fns::put_error;
 use anymap::AnyMap;
-use log::error;
+use log::{error, info};
 use rhsp3_internal_abi::hsp3struct::{HSP3TYPEINFO, HSPCTX, HSPEXINFO};
 use rhsp3_internal_common::{
     bail_lit,
@@ -11,6 +11,7 @@ use rhsp3_internal_common::{
 };
 use std::{
     cell::{RefCell, RefMut},
+    env,
     ptr::null_mut,
     rc::Rc,
     sync::atomic::{AtomicPtr, Ordering},
@@ -103,6 +104,14 @@ pub unsafe fn set_active_ctx(ctx: *mut HSP3TYPEINFO) -> Result<()> {
     crate::dylib_hspctx::ctx_fns::set_hspctx_ptr(ctx)?;
     #[cfg(not(panic = "abort"))]
     std::panic::always_abort(); // we need this for safety, due to the mixed exception handling.
+    #[cfg(feature = "init_log")]
+    {
+        if env::var("RUST_LOG").is_err() {
+            env::set_var("RUST_LOG", "info");
+        }
+        pretty_env_logger::init();
+        info!("HPI interface initialized.");
+    }
 
     Ok(())
 }

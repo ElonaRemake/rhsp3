@@ -1,0 +1,41 @@
+;EXrand のサンプル
+
+#include "exrand.as"
+
+dim t,1
+dim a,1
+
+;乱数系列設定
+ex_randomize_time
+
+font "ＭＳ ゴシック",16
+
+repeat 224
+	pos cnt/28*80,cnt\28*16
+	ex_rand t,1000000
+	mes t
+loop
+
+color 0,0,255
+pos 32,456:mes"ex_randによる範囲[0,999999]の乱数"
+
+pos 480,452:button "次へ",*next
+stop
+
+*next
+
+cls
+repeat 224
+	pos cnt/28*80,cnt\28*16
+	ex_rand2 t,-1000000,2000000
+	mes t
+loop
+
+color 0,0,255
+pos 32,456:mes"ex_rand2による範囲[-1000000,999999]の乱数"
+
+pos 480,452:button "終了",*quit
+stop
+
+*quit
+end

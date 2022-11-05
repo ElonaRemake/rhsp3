@@ -7,29 +7,29 @@ use std::{
 
 pub unsafe trait VarTypeOwnedCdylib: VarTypeOwnedSealed {
     type HspPointerParam: Debug + Copy + Sized;
-    unsafe fn early_ty_check(ptr: &mut Self::HspPointerParam) -> Result<()>;
+    unsafe fn early_ty_check(ptr: Self::HspPointerParam) -> Result<()>;
     unsafe fn set_hsp_pointer(
-        ptr: &mut Self::HspPointerParam,
+        ptr: Self::HspPointerParam,
         value: &Self::VarSetParam,
     ) -> Result<()>;
-    unsafe fn get_hsp_pointer<'a>(ptr: &mut Self::HspPointerParam) -> Result<Self::VarReturn<'a>>;
+    unsafe fn get_hsp_pointer<'a>(ptr: Self::HspPointerParam) -> Result<Self::VarReturn<'a>>;
 }
 
 pub struct DylibVar<T: VarTypeOwned> {
     ptr: T::HspPointerParam,
 }
 impl<T: VarTypeOwned> DylibVar<T> {
-    pub unsafe fn new(mut ptr: T::HspPointerParam) -> Result<Self> {
-        T::early_ty_check(&mut ptr)?;
+    pub unsafe fn new(ptr: T::HspPointerParam) -> Result<Self> {
+        T::early_ty_check(ptr)?;
         Ok(DylibVar { ptr })
     }
 }
 impl<T: VarTypeOwned> Var<T> for DylibVar<T> {
     fn set(&mut self, value: impl Borrow<T::VarSetParam>) -> Result<()> {
-        unsafe { T::set_hsp_pointer(&mut self.ptr, value.borrow()) }
+        unsafe { T::set_hsp_pointer(self.ptr, value.borrow()) }
     }
     fn get<'a>(&'a mut self) -> Result<T::VarReturn<'a>> {
-        unsafe { T::get_hsp_pointer(&mut self.ptr) }
+        unsafe { T::get_hsp_pointer(self.ptr) }
     }
 }
 impl<T: VarTypeOwned> Debug for DylibVar<T> {

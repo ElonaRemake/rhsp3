@@ -68,16 +68,11 @@ pub unsafe fn get_var_proc(ty: HspType) -> Result<HspVarProcWrapper> {
 }
 
 fn_wrapper_exinfo! {
-    0x3000, pub get_va, HspFunc_prm_getva,
-    (pval: *mut *mut PVal) -> APTR
-}
-fn_wrapper_exinfo! {
     0x3000, set_va_internal, HspFunc_prm_setva,
     (pval: *mut PVal, aptr: APTR, ty: c_int, ptr: *const c_void) -> ()
 }
-pub unsafe fn set_va(pval: *mut *mut PVal, ty: HspType, ptr: *const c_void) -> Result<()> {
-    let va = get_va(pval)?;
-    set_va_internal(*pval, va, to_hsp_type(ty) as c_int, ptr)?;
+pub unsafe fn set_va(pval: *mut PVal, ty: HspType, ptr: *const c_void) -> Result<()> {
+    set_va_internal(pval, (*pval).offset, to_hsp_type(ty) as c_int, ptr)?;
     Ok(())
 }
 

@@ -19,7 +19,14 @@ pub fn crate_root(attr_span: Span, name: &str) -> Result<TokenStream, Error> {
     Ok(root)
 }
 
-pub fn get_id() -> usize {
-    static ID: AtomicUsize = AtomicUsize::new(0);
-    ID.fetch_add(1, Ordering::Relaxed)
+macro_rules! make_id {
+    ($name:ident) => {
+        pub fn $name() -> usize {
+            static ID: AtomicUsize = AtomicUsize::new(0);
+            ID.fetch_add(1, Ordering::Relaxed)
+        }
+    };
 }
+
+make_id!(get_ident_id);
+make_id!(get_registration_id);

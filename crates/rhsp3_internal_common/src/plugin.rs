@@ -1,3 +1,5 @@
+use std::borrow::Cow;
+
 #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Debug, Hash)]
 pub enum HspParamType {
     Int,
@@ -16,7 +18,16 @@ pub enum HspParamType {
     NullPtr,
 }
 
-pub trait HspPluginSealed {}
+pub struct HspFunctionPrototype {
+    pub name: Cow<'static, str>,
+    pub link_name: Cow<'static, str>,
+    pub params: Cow<'static, [HspParamType]>,
+}
+
+pub trait HspPluginSealed {
+    fn get_prototypes() -> Vec<HspFunctionPrototype>;
+    fn dylib_init_link_name() -> &'static str;
+}
 
 /// A trait for types that can be used as a plugin for rhsp3.
 ///

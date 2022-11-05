@@ -10,6 +10,8 @@ mod dylib_hspctx;
 pub use rhsp3_internal_macros::hsp_export;
 pub use var_type::{Var, VarType, VarTypeOwned};
 
+pub mod codegen;
+
 /// Not public API.
 #[doc(hidden)]
 #[deprecated = "This is only used for macro exports, and is not public API."]
@@ -24,6 +26,40 @@ pub mod __macro_export {
         pub use rhsp3_internal_abi;
         pub use rhsp3_internal_common;
         pub use std;
+    }
+
+    pub mod registration {
+        pub trait Registration<const ID: usize> {
+            fn run_chain(&self);
+        }
+
+        pub struct DerefRamp<'a, const ID: usize, T>(pub &'a T);
+        impl<'a, const ID: usize, T> Copy for DerefRamp<'a, ID, T> {}
+        impl<'a, const ID: usize, T> Clone for DerefRamp<'a, ID, T> {
+            fn clone(&self) -> Self {
+                *self
+            }
+        }
+
+        pub trait DerefRampChainA {
+            fn run_chain(self);
+        }
+        impl<'a, const ID: usize, T> DerefRampChainA for &DerefRamp<'a, ID, T>
+        where T: Registration<ID>
+        {
+            #[inline(always)]
+            fn run_chain(self) {
+                self.0.run_chain()
+            }
+        }
+
+        pub trait DerefRampChainB {
+            fn run_chain(self);
+        }
+        impl<'a, const ID: usize, T> DerefRampChainB for DerefRamp<'a, ID, T> {
+            #[inline(always)]
+            fn run_chain(self) {}
+        }
     }
 }
 
@@ -81,7 +117,11 @@ macro_rules! hpi_root {
         mod __rhsp3_root {
             use crate::$out_type;
             use $crate::__macro_export::{
-                reexport::{rhsp3_internal_common::plugin::*, std::prelude::rust_2021::*},
+                reexport::{
+                    rhsp3_internal_common::plugin::*,
+                    std::{cell::RefCell, prelude::rust_2021::*},
+                },
+                registration::*,
                 *,
             };
 
@@ -94,9 +134,27 @@ macro_rules! hpi_root {
                 }
             }
 
+            pub struct GatherPrototypes<'a>(
+                pub std::cell::RefCell<&'a mut Vec<HspFunctionPrototype>>,
+            );
+
             $crate::__rhsp3_plugsdk__dylib!($out_type);
 
-            impl HspPluginSealed for $out_type {}
+            impl HspPluginSealed for $out_type {
+                fn get_prototypes() -> Vec<HspFunctionPrototype> {
+                    let mut prototypes = Vec::new();
+                    let event = GatherPrototypes(std::cell::RefCell::new(&mut prototypes));
+
+                    let helper = DerefRamp::<0, _>(&event);
+                    (&helper).run_chain();
+
+                    prototypes
+                }
+
+                fn dylib_init_link_name() -> &'static str {
+                    "__rhsp3_plugsdk__dylib_init"
+                }
+            }
             impl HspPlugin for $out_type {}
         }
     };
