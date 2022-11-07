@@ -2,49 +2,16 @@
 // specific to rhsp3.
 
 #![cfg_attr(test, deny(warnings))]
-#![deny(missing_docs)]
-
-//! A logger configured via an environment variable which writes to standard
-//! error with nice colored output for log levels.
-//!
-//! ## Example
-//!
-//! ```no_run
-//! extern crate pretty_env_logger;
-//! #[macro_use] extern crate log;
-//!
-//! fn main() {
-//!     pretty_env_logger::init();
-//!
-//!     trace!("a trace example");
-//!     debug!("deboogging");
-//!     info!("such information");
-//!     warn!("o_O");
-//!     error!("boom");
-//! }
-//! ```
-//!
-//! Run the program with the environment variable `RUST_LOG=trace`.
-//!
-//! ## Defaults
-//!
-//! The defaults can be setup by calling `init()` or `try_init()` at the start
-//! of the program.
-//!
-//! ## Enable logging
-//!
-//! This crate uses [env_logger][] internally, so the same ways of enabling
-//! logs through an environment variable are supported.
-//!
-//! [env_logger]: https://docs.rs/env_logger
 
 #[doc(hidden)]
 pub extern crate env_logger;
 
 extern crate log;
 
-use std::fmt;
-use std::sync::atomic::{AtomicUsize, Ordering};
+use std::{
+    fmt,
+    sync::atomic::{AtomicUsize, Ordering},
+};
 
 use env_logger::{
     fmt::{Color, Style, StyledValue},
@@ -102,10 +69,9 @@ pub fn formatted_builder() -> Builder {
         let level = colored_level(&mut style, record.level());
 
         let mut style = f.style();
-        let target = style.set_bold(true).value(Padded {
-            value: target,
-            width: max_width,
-        });
+        let target = style
+            .set_bold(true)
+            .value(Padded { value: target, width: max_width });
 
         writeln!(f, " {} {} > {}", level, target, record.args(),)
     });

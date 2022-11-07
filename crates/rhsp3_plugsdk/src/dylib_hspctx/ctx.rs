@@ -78,7 +78,7 @@ pub fn with_active_ctx<R>(callback: impl FnOnce(&mut DylibContext) -> Result<R>)
 }
 
 #[inline(never)]
-pub unsafe fn set_active_ctx(ctx: *mut HSP3TYPEINFO) -> Result<()> {
+unsafe fn set_active_ctx(ctx: *mut HSP3TYPEINFO) -> Result<()> {
     let ctx = &*ctx;
 
     // Build the new DylibContext
@@ -126,4 +126,23 @@ pub unsafe fn check_error(func: impl FnOnce() -> Result<i32>) -> i32 {
             }
         }
     }
+}
+
+unsafe fn init_impl(type_info: *mut HSP3TYPEINFO) -> i32 {
+    check_error(|| {
+        set_active_ctx(type_info)?;
+        Ok(0)
+    })
+}
+
+#[cfg(windows)]
+#[export_name = "__rhsp3_plugsdk__dylib_init"]
+pub unsafe extern "stdcall-unwind" fn init(type_info: *mut HSP3TYPEINFO) -> i32 {
+    init_impl(type_info)
+}
+
+#[cfg(not(windows))]
+#[export_name = "__rhsp3_plugsdk__dylib_init"]
+pub unsafe extern "C-unwind" fn init(type_info: *mut HSP3TYPEINFO) -> i32 {
+    init_impl(type_info)
 }
