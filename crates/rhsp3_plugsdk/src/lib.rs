@@ -9,7 +9,7 @@ mod dylib_hspctx;
 
 #[doc(inline)]
 pub use rhsp3_internal_macros::hsp_export;
-pub use var_type::{Var, VarType, VarTypeOwned};
+pub use var_type::{Var, VarBuffer, VarType, VarTypeOwned};
 
 pub mod codegen;
 
@@ -18,6 +18,7 @@ pub mod codegen;
 #[deprecated = "This is only used for macro exports, and is not public API."]
 pub mod __macro_export {
     pub use crate::var_type::*;
+    pub use rhsp3_internal_abi::hsp3struct::PVal;
     pub use rhsp3_internal_common::errors::Result;
 
     #[cfg(feature = "cdylib")]

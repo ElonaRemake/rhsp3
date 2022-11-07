@@ -1,5 +1,9 @@
 use rhsp3_internal_common::{errors::*, plugin::HspParamType};
-use std::{borrow::Borrow, fmt::Debug};
+use std::{
+    borrow::Borrow,
+    fmt::Debug,
+    ops::{Deref, DerefMut},
+};
 
 /// Represents an variable passed in from HSP code.
 pub trait Var<T: VarTypeOwned>: Debug + Sized {
@@ -9,21 +13,19 @@ pub trait Var<T: VarTypeOwned>: Debug + Sized {
     fn get<'a>(&'a mut self) -> Result<T::VarReturn<'a>>;
 }
 
+pub trait VarBufferSealed {}
+
 /// Represents the raw data backing a variable or array.
 ///
 /// The exact details and contents of this type are platform and implementation dependant, but
 /// can always be treated as an array and read back into memory without causing memory safety
 /// issues. rhsp3 will not create a `VarBuffer` for a variable where this is not possible.
-pub trait VarBuffer: Debug + Sized {}
-
-/// Represents the raw data backing a variable or array.
-///
-/// Due to HSP's extension API, this is neither aware of the type of the underlying data, nor the
-/// length of the underlying data. Using this is usually unsound.
-///
-/// However, unlike [`VarBuffer`] it can be used with variables not yet initialized in HSP, due
-/// to the different definition type.
-pub trait UnsafeVarBuffer: Debug + Sized {}
+pub trait VarBuffer: VarBufferSealed + Debug + Sized + Deref<Target = [u8]> + DerefMut {
+    /// Dereferences the buffer. This is an alias for [`Deref::deref`].
+    fn deref(&self) -> &[u8];
+    /// Dereferences the buffer. This is an alias for [`Deref::deref_mut`].
+    fn deref_mut(&mut self) -> &mut [u8];
+}
 
 #[cfg(not(feature = "cdylib"))]
 pub trait VarTypeOwnedCdylib {}

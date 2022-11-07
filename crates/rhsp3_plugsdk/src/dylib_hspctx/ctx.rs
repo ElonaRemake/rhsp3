@@ -17,7 +17,9 @@ use std::{
 /// The HSP execution context.
 #[derive(Debug)]
 pub struct DylibHspContext {
+    #[allow(dead_code)] // TODO: Temporary
     ctx: *mut HSPCTX,
+    #[allow(dead_code)] // TODO: Temporary
     exinfo: *mut HSPEXINFO,
 }
 impl DylibHspContext {
@@ -118,7 +120,7 @@ pub unsafe fn check_error(func: impl FnOnce() -> Result<i32>) -> i32 {
         Err(e) => {
             if e.backtrace().is_some() {
                 error!(target: "rhsp3_plugsdk", "Internal error occurred: {}", e);
-                error!(target: "rhsp3_plugsdk", "{:?}", e.backtrace().unwrap());
+                error!(target: "rhsp3_plugsdk", "Backtrace:\n{:?}", e.backtrace().unwrap());
             }
             match put_error(to_hsp_error(e.error_code())) {
                 Ok(_) => unreachable!(),

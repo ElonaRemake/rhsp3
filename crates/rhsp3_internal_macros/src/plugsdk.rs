@@ -13,6 +13,7 @@ enum HspParamType {
     OwnedVal(Type),
     RefVal(Type, bool /* is_mut */),
     ExtData(Type, bool /* is_mut */),
+    VarBuffer,
 }
 impl HspParamType {
     fn from_var(ty: &TraitBound) -> Result<HspParamType, Error> {
@@ -54,14 +55,23 @@ impl HspParamType {
                         ));
                     }
                     Ok(HspParamType::ImplContext)
+                } else if ty.path.segments.last().unwrap().ident == "VarBuffer" {
+                    if ty.path.segments.iter().any(|x| !x.arguments.is_empty()) {
+                        return Err(Error::new(
+                            ty.path.span(),
+                            "`impl VarBuffer` should not contain any type parameters.",
+                        ));
+                    }
+                    Ok(HspParamType::VarBuffer)
                 } else if ty.path.segments.last().unwrap().ident == "Var" {
                     HspParamType::from_var(ty)
                 } else {
                     Err(Error::new(
                         bound.span(),
                         "`impl Trait` type not recognized. Note that rhsp3 does not \
-                        currently support renaming `HspContext` or `Var` when importing. \
-                        If you have a conflict, please use a full crate name instead.",
+                        currently support renaming `HspContext`, `Var` or `VarBuffer` when \
+                        importing. If you have a conflict, please use a full crate name \
+                        instead.",
                     ))
                 }
             }
@@ -221,6 +231,16 @@ fn make_dylib_shim(
                 });
                 param_args.push(quote! { &mut *#out_ident });
             }
+            HspParamType::VarBuffer => {
+                let in_ident = ident!("_hsp3rawparam_{i}");
+                let out_ident = ident!("_hsp3owned_{i}");
+                param_names.push(quote! { #in_ident });
+                param_types.push(quote! { *mut #root::PVal });
+                simple_load.push(quote! {
+                    let mut #out_ident = #root::dylib::DylibVarBuffer::new(#in_ident)?;
+                });
+                param_args.push(quote! { &mut #out_ident });
+            }
         }
     }
 
@@ -303,6 +323,7 @@ fn register_prototypes(
                 args_ast.push(quote! { <#ty as #root::VarTypeSealed>::PARAM_TYPE });
             }
             HspParamType::ExtData(_, _) => {}
+            HspParamType::VarBuffer => args_ast.push(quote! { #plugin::HspParamType::VarAsPVal }),
         }
     }
     if args_ast.len() > 4 {
