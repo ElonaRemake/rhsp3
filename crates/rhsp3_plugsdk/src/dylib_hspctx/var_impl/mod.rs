@@ -8,10 +8,7 @@ use std::{
 pub unsafe trait VarTypeOwnedCdylib: VarTypeOwnedSealed {
     type HspPointerParam: Debug + Copy + Sized;
     unsafe fn early_ty_check(ptr: Self::HspPointerParam) -> Result<()>;
-    unsafe fn set_hsp_pointer(
-        ptr: Self::HspPointerParam,
-        value: &Self::VarSetParam,
-    ) -> Result<()>;
+    unsafe fn set_hsp_pointer(ptr: Self::HspPointerParam, value: &Self::VarSetParam) -> Result<()>;
     unsafe fn get_hsp_pointer<'a>(ptr: Self::HspPointerParam) -> Result<Self::VarReturn<'a>>;
 }
 

@@ -53,7 +53,3 @@ pub fn hsp_ty_check(data: &PVal, ty: HspType) -> Result<()> {
 }
 
 pub trait HspContext {}
-
-pub trait HspExtData: Sized + 'static {
-    fn init() -> Result<Self>;
-}

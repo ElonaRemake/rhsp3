@@ -1,5 +1,6 @@
 #![feature(c_unwind)]
 
+use log::trace;
 use rand::{
     rngs::{adapter::ReseedingRng, OsRng},
     Rng, SeedableRng,
@@ -8,7 +9,6 @@ use rand_chacha::{ChaCha8Core, ChaCha8Rng};
 use rhsp3_common::*;
 use rhsp3_plugsdk::{hsp_export, Var};
 use std::ops::Range;
-use log::trace;
 
 fn new_seeded_rng() -> RngData {
     trace!("Reseeding from OS rng.");

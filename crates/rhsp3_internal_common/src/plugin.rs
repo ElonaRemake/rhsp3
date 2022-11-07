@@ -1,3 +1,4 @@
+use crate::errors;
 use std::borrow::Cow;
 
 #[derive(Copy, Clone, Ord, PartialOrd, Eq, PartialEq, Debug, Hash)]
@@ -16,6 +17,10 @@ pub enum HspParamType {
     PRefStr,
     PExInfo,
     NullPtr,
+
+    /// Unique to rhsp3 - generates a shim function that accepts the variable as a var but passes
+    /// it to the extension function as an pval.
+    VarAsPVal,
 }
 
 pub struct HspFunctionPrototype {
@@ -34,3 +39,9 @@ pub trait HspPluginSealed {
 /// For custom plugins, this must be implemented using the `rhsp3_plugsdk` crate rather than
 /// created manually.
 pub trait HspPlugin: HspPluginSealed {}
+
+/// A trait for types that can be stored in a HSP context.
+pub trait HspExtData: Sized + 'static {
+    /// Creates a new instance of this type.
+    fn init() -> errors::Result<Self>;
+}

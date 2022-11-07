@@ -7,3 +7,6 @@ pub mod ctx;
 pub mod errors;
 pub mod hsp_errors;
 pub mod plugin;
+
+#[cfg(feature = "logging")]
+pub mod logger;

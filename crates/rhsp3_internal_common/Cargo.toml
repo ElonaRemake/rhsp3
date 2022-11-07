@@ -8,9 +8,12 @@ description = "The internal implementation of rhsp3_common. Not public API."
 [features]
 plugsdk = []
 plugsdk_cdylib = []
+logging = ["log", "env_logger"]
 
 [dependencies]
 backtrace = "0.3.66"
+env_logger = { version = "0.9.1", optional = true, default-features = false, features = ["termcolor", "humantime"] }
+log = { version = "0.4.17", optional = true, default-features = false }
 thiserror = "1.0.37"
 
 rhsp3_internal_abi = { path = "../rhsp3_internal_abi" }

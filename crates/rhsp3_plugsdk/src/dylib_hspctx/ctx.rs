@@ -3,11 +3,7 @@ use anymap::AnyMap;
 use log::{error, info};
 use rhsp3_internal_abi::hsp3struct::{HSP3TYPEINFO, HSPCTX, HSPEXINFO};
 use rhsp3_internal_common::{
-    bail_lit,
-    ctx::{HspContext, HspExtData},
-    ensure_lit,
-    errors::*,
-    hsp_errors::to_hsp_error,
+    bail_lit, ctx::HspContext, ensure_lit, errors::*, hsp_errors::to_hsp_error, plugin::HspExtData,
 };
 use std::{
     cell::{RefCell, RefMut},
@@ -109,7 +105,7 @@ pub unsafe fn set_active_ctx(ctx: *mut HSP3TYPEINFO) -> Result<()> {
         if env::var("RUST_LOG").is_err() {
             env::set_var("RUST_LOG", "info");
         }
-        pretty_env_logger::init();
+        rhsp3_internal_common::logger::init();
         info!("HPI interface initialized.");
     }
 
