@@ -105,8 +105,8 @@ pub unsafe fn set_active_ctx(ctx: *mut HSP3TYPEINFO) -> Result<()> {
         if env::var("RUST_LOG").is_err() {
             env::set_var("RUST_LOG", "info");
         }
-        rhsp3_internal_common::logger::init();
-        info!("HPI interface initialized.");
+        rhsp3_internal_common::logger::try_init()?;
+        info!(target: "rhsp3_plugsdk", "HPI interface initialized.");
     }
 
     Ok(())
@@ -117,8 +117,8 @@ pub unsafe fn check_error(func: impl FnOnce() -> Result<i32>) -> i32 {
         Ok(v) => v,
         Err(e) => {
             if e.backtrace().is_some() {
-                error!("Internal error occurred: {}", e);
-                error!("{:?}", e.backtrace().unwrap());
+                error!(target: "rhsp3_plugsdk", "Internal error occurred: {}", e);
+                error!(target: "rhsp3_plugsdk", "{:?}", e.backtrace().unwrap());
             }
             match put_error(to_hsp_error(e.error_code())) {
                 Ok(_) => unreachable!(),
