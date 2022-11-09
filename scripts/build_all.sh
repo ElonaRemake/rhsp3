@@ -25,3 +25,4 @@ mkdir -p build/x86-linux || exit 1
 cp -r data/* build/x86-windows || exit 1
 cp -r data/* build/x86-linux || exit 1
 build_example_hpi exrand
+build_example_hpi z

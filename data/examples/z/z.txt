@@ -1,0 +1,91 @@
+
+gz 圧縮・解凍プラグイン "z.hpi"
+----------------------------------------
+
+■ナニコレ
+　zlib を使用した gz 形式の圧縮解凍プラグインです。
+　完全可逆圧縮ですので、ネットワークにちょっと大きめの
+　データを流したいときや、画像の圧縮などに使えます。
+　gz 形式の圧縮解凍ソフトなどは、芸がないのでやめましょう（笑
+
+
+■使い方
+　z.hpi を    HSP フォルダにコピーして、
+　z.as  を common フォルダにコピーします。
+
+　で、#include "z.as" とすると、次の関数が
+　使用できるようになります。
+
+
+○zOpen hGz, "filename", mode, clv
+　gz 形式のファイルを開きます。
+　　hGz には、ファイルハンドルが返ります。
+　　この値を使用して zWrite/zRead/zClose を操作します。
+　mode に Z_READ  を指定すると読み込みモード、
+　　　　　Z_WRITE を指定すると書き込みモードとなります。
+　clv は、書き込みモード時の圧縮率です。
+　　0 で非圧縮、9 で最大圧縮ですが、3 以上の値を
+　　指定しても圧縮率はあまり変わりません。
+　stat は、正常終了した場合 0 が返ります。
+
+
+○zRead hGz, buf, size
+　hGz のハンドルから size バイトのデータを読み込みます。
+　stat は、読み込んだバイト数です。エラーが発生するか
+　ファイルの終端に到達すると、0 が返ります。
+
+
+○zWrite hGz, buf, size
+　hGz のハンドルに size バイトのデータを書き込みます。
+　stat は、書き込んだバイト数です。
+　書き込み中にエラーが発生すると、0 が返ります。
+
+
+○zClose hGz
+　hGz のハンドルを閉じます。
+　書き込み・読み込みが終了したら、必ず呼んでください。
+
+
+○zSetDest dest, size
+　zCompress/zUncompress 命令を発行した結果が dest に
+　書き込まれるように設定します。
+　dim などの命令でバッファを確保しなおした場合は、
+　その後で再度 zSetDest を呼ぶ必要があります。
+
+
+○zCompress src, size, clv
+　src で指定されたバッファを size バイト分圧縮します。
+　圧縮されたデータは zSetDest で指定されたバッファに
+　書き込まれます。clv は圧縮率の指定で、0 で非圧縮
+　9 で最大圧縮ですが、3 以上の値を指定しても
+　圧縮率はあまり変わりません。stat は圧縮後のサイズです。
+　書き込み先のメモリが足りないなどでエラーが発生した場合は、
+　stat=0 となります。
+
+
+○zUncompress src, size
+　src で指定されたバッファから size バイト分解凍します。
+　解凍されたデータは zSetDest で指定されたバッファに
+　書き込まれます。stat は解凍後のサイズです。
+　書き込み先のメモリが足りないなどでエラーが発生した場合は、
+　stat=0 となります。
+
+
+○zGetCrc src, size
+　src で指定されたバッファから size バイト分の
+　CRCを取得します。取得結果は refstr に文字列として返ります。
+　ファイルの整合性チェック等にお使いください。
+
+
+■zlib オリジナルコード著作権表記  [ http://www.gzip.org/zlib/ ]
+  zlib.h -- interface of the 'zlib' general purpose compression library
+  version 1.1.4, March 11th, 2002
+  Copyright (C) 1995-2002 Jean-loup Gailly and Mark Adler
+
+  また、z.hpi を z.dll にリネームし、プロパティを開くことで
+  著作権情報を閲覧することができます。
+
+
+■連絡先
+　           MIA [ mailto:mia@diry.net ]
+　MIA's HomePage [ http://diry.net/mia ]

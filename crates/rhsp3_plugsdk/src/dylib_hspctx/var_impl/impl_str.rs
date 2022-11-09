@@ -6,13 +6,12 @@ use crate::{
     },
     utils::{decode_char, encode_str},
 };
+use rhsp3_internal_abi::hsp3struct::{PVal, HSPVAR_FLAG_STR};
 use rhsp3_internal_common::{ensure_lit, errors::*};
 use std::{
     cell::RefCell,
-    ffi::{c_char, c_int, CString},
+    ffi::{c_char, c_int, c_short, CString},
 };
-use std::ffi::c_short;
-use rhsp3_internal_abi::hsp3struct::{HSPVAR_FLAG_STR, PVal};
 
 // TODO: Do something fancy here with codegen. :)
 
@@ -32,10 +31,10 @@ pub unsafe fn make_strctx(out: *mut c_int, str_ptr: *mut c_char) -> i32 {
         })
     })
 }
-pub unsafe fn strctx_len(handle: c_int, out: *mut c_int) -> i32 {
+pub unsafe fn strctx_len(handle_id: c_int, out: *mut c_int) -> i32 {
     check_error(|| {
         with_active_ctx(|ctx| {
-            let handle = ctx.get_refs().0.str_ctx.get(handle)?;
+            let handle = ctx.get_refs().0.str_ctx.get(handle_id)?;
             let encoded = encode_str(&handle.data.borrow_mut().take().unwrap())?;
 
             let len = encoded.as_bytes_with_nul().len();
@@ -48,10 +47,10 @@ pub unsafe fn strctx_len(handle: c_int, out: *mut c_int) -> i32 {
         })
     })
 }
-pub unsafe fn strctx_output(handle: c_int, out: *mut PVal) -> i32 {
+pub unsafe fn strctx_output(handle_id: c_int, out: *mut PVal) -> i32 {
     check_error(|| {
         with_active_ctx(|ctx| {
-            let handle = &ctx.get_refs().0.str_ctx.get(handle)?;
+            let handle = ctx.get_refs().0.str_ctx.free(handle_id)?;
             let cstr = handle.encoded_str.borrow();
             let cstr = cstr.as_ref().unwrap();
             let len = cstr.as_bytes_with_nul().len();

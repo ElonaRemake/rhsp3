@@ -1,0 +1,34 @@
+#include "z.as"
+
+#define DATASIZE	16384
+
+	dim wdata, DATASIZE
+	dim rdata, DATASIZE
+
+	fln = "test.gz"
+
+	repeat DATASIZE : rnd wdata.cnt : loop
+
+	mes fln+" に出力します"
+	zOpen  hGz, fln, Z_WRITE, 3
+	zWrite wdata, hGz, DATASIZE*4
+	zClose hGz
+
+	exist fln : writesize = strsize
+	rate = writesize * 100 / (DATASIZE * 4)
+	mes "出力サイズ "+writesize+" バイト（圧縮率 "+rate+"%）"
+
+	mes "\n"+fln+" から読み込みます"
+	zOpen  hGz, fln, Z_READ
+	zRead  rdata, hGz, DATASIZE*4
+	zClose hGz
+
+	mes "元のデータと比較中..." : erf=0
+	repeat DATASIZE
+		if wdata.cnt!rdata.cnt : {
+			mes ""+cnt+" : "+wdata.cnt+" ! "+rdata.cnt
+			erf=1
+		}
+	loop
+	if erf=0 : mes "相違点はありません"
+stop

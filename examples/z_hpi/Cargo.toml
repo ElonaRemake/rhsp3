@@ -1,0 +1,20 @@
+[package]
+name = "z_hpi"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+default = ["cdylib"]
+cdylib = ["rhsp3_plugsdk/cdylib"]
+
+[[example]]
+name = "z_hpi_cdylib"
+crate-type = ["cdylib"]
+required-features = ["cdylib"]
+
+[dependencies]
+flate2 = "1.0.24"
+log = "0.4.17"
+
+rhsp3_common = { path = "../../crates/rhsp3_common" }
+rhsp3_plugsdk = { path = "../../crates/rhsp3_plugsdk" }

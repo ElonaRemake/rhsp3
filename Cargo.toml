@@ -6,6 +6,7 @@ members = [
     "crates/rhsp3_internal_macros",
     "crates/rhsp3_plugsdk",
     "examples/exrand_hpi",
+    "examples/z_hpi",
 ]
 
 [profile.dev]

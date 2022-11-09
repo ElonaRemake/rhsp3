@@ -1,13 +1,6 @@
 use modinverse::modinverse;
 use rhsp3_internal_common::{bail_code, errors::*};
-use std::{
-    cell::RefCell,
-    ffi::c_int,
-    hash::{Hash, Hasher},
-    rc::Rc,
-    sync::atomic::{AtomicU32, Ordering},
-    time::SystemTime,
-};
+use std::{cell::RefCell, ffi::c_int, hash::{Hash, Hasher}, mem, rc::Rc, sync::atomic::{AtomicU32, Ordering}, time::SystemTime};
 use twox_hash::Xxh3Hash64;
 
 #[cold]
@@ -103,16 +96,19 @@ impl<T> ObjectHandlesCore<T> {
             FreeListNode::Free(_) => bail_code!(OutOfBoundsAccess),
         }
     }
-    fn free(&mut self, handle: c_int) -> Result<()> {
+    fn free(&mut self, handle: c_int) -> Result<T> {
         let idx = self.idx_deobf(handle) as usize;
         if idx > self.data.len() {
             bail_code!(OutOfBoundsAccess);
         }
         match &self.data[idx] {
             FreeListNode::Exists(_) => {
-                self.data[idx] = FreeListNode::Free(self.free_head);
+                let cur = mem::replace(&mut self.data[idx], FreeListNode::Free(self.free_head));
+                let FreeListNode::Exists(data) = cur else {
+                    unreachable!();
+                };
                 self.free_head = idx;
-                Ok(())
+                Ok(data)
             }
             FreeListNode::Free(_) => bail_code!(OutOfBoundsAccess),
         }
@@ -120,6 +116,9 @@ impl<T> ObjectHandlesCore<T> {
 }
 
 /// A type that generates opaque and memory safe `int` handles for HSP code.
+///
+/// The integer handles returned to HSP code are randomized in such a way that mathematical
+/// operations on handles should normally produce errors.
 pub struct ObjectStore<T>(RefCell<ObjectHandlesCore<Rc<T>>>);
 impl<T> ObjectStore<T> {
     /// Creates a new object store.
@@ -138,7 +137,7 @@ impl<T> ObjectStore<T> {
     }
 
     /// Frees a given handle.
-    pub fn free(&self, handle: c_int) -> Result<()> {
+    pub fn free(&self, handle: c_int) -> Result<Rc<T>> {
         self.0.borrow_mut().free(handle)
     }
 }

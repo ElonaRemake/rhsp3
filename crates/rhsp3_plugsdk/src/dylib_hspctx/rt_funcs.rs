@@ -2,7 +2,7 @@ use crate::dylib_hspctx::{
     ctx::{check_error, set_active_ctx},
     var_impl,
 };
-use rhsp3_internal_abi::hsp3struct::{HSP3TYPEINFO, PVal};
+use rhsp3_internal_abi::hsp3struct::{PVal, HSP3TYPEINFO};
 use std::ffi::{c_char, c_int};
 
 unsafe fn init_impl(type_info: *mut HSP3TYPEINFO) -> i32 {
