@@ -21,6 +21,9 @@ pub enum HspParamType {
     /// Unique to rhsp3 - generates a shim function that accepts the variable as a var but passes
     /// it to the extension function as an pval.
     VarAsPVal,
+    /// Unique to rhsp3 - generates a shim function that accepts the variable as a str but passes
+    /// it to the extension function using wrapper functions.
+    StrAsHandle,
 }
 
 pub struct HspFunctionPrototype {

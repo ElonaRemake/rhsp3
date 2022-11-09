@@ -49,17 +49,12 @@ pub unsafe trait VarTypeSealed {
         param: Self::HspParam,
         callback: impl FnOnce(&mut Self) -> Result<R>,
     ) -> Result<R>;
-
-    unsafe fn into_hsp_param_mut<R>(
-        self,
-        callback: impl FnOnce(&mut Self::HspParam) -> Result<R>,
-    ) -> Result<R>;
 }
 pub unsafe trait VarTypeOwnedSealed: VarTypeSealed + Sized {
     unsafe fn from_hsp_param(param: Self::HspParam) -> Result<Self>;
     unsafe fn to_hsp_param(self) -> Result<Self::HspParam>;
 
-    type VarSetParam;
+    type VarSetParam: ?Sized;
     type VarReturn<'a>: Sized;
     const VAR_PARAM_TYPE: HspParamType;
 }
@@ -114,15 +109,9 @@ macro_rules! passthrough_owned {
             ) -> Result<R> {
                 callback(&mut Self::from_hsp_param(param)?)
             }
-
-            unsafe fn into_hsp_param_mut<R>(
-                self,
-                callback: impl FnOnce(&mut Self::HspParam) -> Result<R>,
-            ) -> Result<R> {
-                callback(&mut Self::to_hsp_param(self)?)
-            }
         }
     };
 }
 
 mod impl_numeric;
+mod impl_str;

@@ -67,6 +67,7 @@ struct ErrorData {
     backtrace: Option<Backtrace>,
     cause: Option<Box<dyn StdError + 'static>>,
     error_code: Option<ErrorCode>,
+    no_log: bool,
 }
 impl Error {
     /// Creates an new error containing a message to show directly to the user.
@@ -84,12 +85,20 @@ impl Error {
     /// Creates a new error containing an HSP error code.
     #[inline(never)]
     pub fn code(code: ErrorCode) -> Self {
-        Error::new(ErrorKind::GenericError).with_error_code(code)
+        Error::new(ErrorKind::GenericError)
+            .with_error_code(code)
+            .with_no_log()
     }
 
     #[inline(never)]
     fn new(kind: ErrorKind) -> Error {
-        Error(Box::new(ErrorData { kind, backtrace: None, cause: None, error_code: None }))
+        Error(Box::new(ErrorData {
+            kind,
+            backtrace: None,
+            cause: None,
+            error_code: None,
+            no_log: false,
+        }))
     }
 
     #[inline(never)]
@@ -146,6 +155,12 @@ impl Error {
         }
     }
 
+    /// Sets this error to skip reporting an error to the command line console.
+    pub fn with_no_log(mut self) -> Self {
+        self.0.no_log = true;
+        self
+    }
+
     /// Sets the error code returned to HSP.
     pub fn with_error_code(mut self, code: ErrorCode) -> Self {
         self.0.error_code = Some(code);
@@ -169,6 +184,11 @@ impl Error {
     /// Returns the error code this error will return to HSP code.
     pub fn error_code(&self) -> ErrorCode {
         self.0.error_code.unwrap_or(ErrorCode::GenericError)
+    }
+
+    /// Returns whether this should be logged to the command line console.
+    pub fn is_logged(&self) -> bool {
+        !self.0.no_log
     }
 
     /// Converts this error into a type that implements [`std::error::Error`].

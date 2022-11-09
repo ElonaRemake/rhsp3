@@ -4,7 +4,7 @@ use rhsp3_common::Result;
 use rhsp3_plugsdk::{hsp_export, VarBuffer};
 
 #[hsp_export]
-fn test_function1() -> Result<()> {
+fn test_function1(_: String) -> Result<()> {
     Ok(())
 }
 

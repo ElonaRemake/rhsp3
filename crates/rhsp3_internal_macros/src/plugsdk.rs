@@ -186,20 +186,22 @@ fn make_dylib_shim(
     let mut param_names = Vec::new();
     let mut param_types = Vec::new();
     let mut param_args = Vec::new();
-    let mut simple_load = Vec::new();
+    let mut early_load = Vec::new();
+    let mut late_load = Vec::new();
     let mut load_ref = Vec::new();
     for (i, arg) in args.iter().enumerate() {
         match arg {
             HspParamType::ImplContext => {
-                param_args.push(quote! { &mut _hsp3storedctx.context });
+                param_args.push(quote! { &mut _hsp3storedctx_hsp_ctx });
             }
             HspParamType::ImplVar(ty) => {
                 let in_ident = ident!("_hsp3rawparam_{i}");
                 let out_ident = ident!("_hsp3var_{i}");
                 param_names.push(quote! { #in_ident });
                 param_types.push(quote! { <#ty as #root::VarTypeOwnedCdylib>::HspPointerParam });
-                simple_load.push(quote! {
-                    let mut #out_ident = #root::dylib::DylibVar::new(#in_ident)?;
+                late_load.push(quote! {
+                    let mut #out_ident =
+                        #root::dylib::DylibVar::new(_hsp3storedctx_var_ctx, #in_ident)?;
                 });
                 param_args.push(quote! { &mut #out_ident });
             }
@@ -208,7 +210,7 @@ fn make_dylib_shim(
                 let out_ident = ident!("_hsp3owned_{i}");
                 param_names.push(quote! { #in_ident });
                 param_types.push(quote! { <#ty as #root::VarTypeSealed>::HspParam });
-                simple_load.push(quote! {
+                late_load.push(quote! {
                     let #out_ident =
                         <#ty as #root::VarTypeOwnedSealed>::from_hsp_param(#in_ident)?;
                 });
@@ -225,7 +227,7 @@ fn make_dylib_shim(
             HspParamType::ExtData(ty, _) => {
                 let lock_ident = ident!("_hsp3extdatalock_{i}");
                 let out_ident = ident!("_hsp3extdata_{i}");
-                simple_load.push(quote! {
+                early_load.push(quote! {
                     let mut #lock_ident = _hsp3storedctx.get_ext_data::<#ty>()?;
                     let mut #out_ident = #lock_ident.borrow_mut();
                 });
@@ -236,7 +238,7 @@ fn make_dylib_shim(
                 let out_ident = ident!("_hsp3owned_{i}");
                 param_names.push(quote! { #in_ident });
                 param_types.push(quote! { *mut #root::PVal });
-                simple_load.push(quote! {
+                late_load.push(quote! {
                     let mut #out_ident = #root::dylib::DylibVarBuffer::new(#in_ident)?;
                 });
                 param_args.push(quote! { &mut #out_ident });
@@ -271,7 +273,9 @@ fn make_dylib_shim(
                 _hsp3storedctx: &mut #root::dylib::DylibContext,
                 #(#param_names: #param_types,)*
             ) -> #root::Result<i32> {
-                #(#simple_load)*
+                #(#early_load)*
+                let (_hsp3storedctx_var_ctx, _hsp3storedctx_hsp_ctx) = _hsp3storedctx.get_refs();
+                #(#late_load)*
                 #core_func
             }
             #root::dylib::check_error(|| {

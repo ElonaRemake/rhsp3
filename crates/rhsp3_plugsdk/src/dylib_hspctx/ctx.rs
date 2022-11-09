@@ -1,4 +1,7 @@
-use crate::dylib_hspctx::ctx_fns::put_error;
+use crate::{
+    dylib_hspctx::{ctx_fns::put_error, var_impl::StrCtx},
+    ObjectStore,
+};
 use anymap::AnyMap;
 use log::{error, info};
 use rhsp3_internal_abi::hsp3struct::{HSP3TYPEINFO, HSPCTX, HSPEXINFO};
@@ -48,10 +51,15 @@ impl<T: HspExtData> HspExtDataGuard<T> {
     }
 }
 
+pub struct DylibVarContext {
+    pub str_ctx: ObjectStore<StrCtx>,
+}
+
 pub struct DylibContext {
     target_thread: ThreadId,
-    pub context: DylibHspContext,
+    hsp_ctx: DylibHspContext,
     map: AnyMap,
+    var_ctx: DylibVarContext,
 }
 impl DylibContext {
     pub fn get_ext_data<T: HspExtData>(&mut self) -> Result<HspExtDataGuard<T>> {
@@ -59,6 +67,10 @@ impl DylibContext {
             self.map.insert(HspExtDataGuard::<T>::new()?);
         }
         Ok(self.map.get::<HspExtDataGuard<T>>().unwrap().clone())
+    }
+
+    pub fn get_refs(&mut self) -> (&DylibVarContext, &mut DylibHspContext) {
+        (&self.var_ctx, &mut self.hsp_ctx)
     }
 }
 unsafe impl Send for DylibContext {}
@@ -80,14 +92,15 @@ pub fn with_active_ctx<R>(callback: impl FnOnce(&mut DylibContext) -> Result<R>)
 }
 
 #[inline(never)]
-unsafe fn set_active_ctx(ctx: *mut HSP3TYPEINFO) -> Result<()> {
+pub unsafe fn set_active_ctx(ctx: *mut HSP3TYPEINFO) -> Result<()> {
     let ctx = &*ctx;
 
     // Build the new DylibContext
     let box_ctx = Box::leak(Box::new(RefCell::new(DylibContext {
         target_thread: current().id(),
-        context: DylibHspContext::from_ptr(ctx),
+        hsp_ctx: DylibHspContext::from_ptr(ctx),
         map: AnyMap::new(),
+        var_ctx: DylibVarContext { str_ctx: ObjectStore::new()? },
     })));
 
     // Store the DylibContext
@@ -118,9 +131,11 @@ pub unsafe fn check_error(func: impl FnOnce() -> Result<i32>) -> i32 {
     match func() {
         Ok(v) => v,
         Err(e) => {
-            if e.backtrace().is_some() {
-                error!(target: "rhsp3_plugsdk", "Internal error occurred: {}", e);
-                error!(target: "rhsp3_plugsdk", "Backtrace:\n{:?}", e.backtrace().unwrap());
+            if e.is_logged() {
+                error!(target: "rhsp3_plugsdk", "{}", e);
+                if e.backtrace().is_some() {
+                    error!(target: "rhsp3_plugsdk", "Backtrace:\n{:?}", e.backtrace().unwrap());
+                }
             }
             match put_error(to_hsp_error(e.error_code())) {
                 Ok(_) => unreachable!(),
@@ -128,23 +143,4 @@ pub unsafe fn check_error(func: impl FnOnce() -> Result<i32>) -> i32 {
             }
         }
     }
-}
-
-unsafe fn init_impl(type_info: *mut HSP3TYPEINFO) -> i32 {
-    check_error(|| {
-        set_active_ctx(type_info)?;
-        Ok(0)
-    })
-}
-
-#[cfg(windows)]
-#[export_name = "__rhsp3_plugsdk__dylib_init"]
-pub unsafe extern "stdcall-unwind" fn init(type_info: *mut HSP3TYPEINFO) -> i32 {
-    init_impl(type_info)
-}
-
-#[cfg(not(windows))]
-#[export_name = "__rhsp3_plugsdk__dylib_init"]
-pub unsafe extern "C-unwind" fn init(type_info: *mut HSP3TYPEINFO) -> i32 {
-    init_impl(type_info)
 }

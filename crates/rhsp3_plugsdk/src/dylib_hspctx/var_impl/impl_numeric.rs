@@ -1,5 +1,5 @@
 use crate::{
-    dylib_hspctx::{ctx_fns, var_impl::VarTypeOwnedCdylib},
+    dylib_hspctx::{ctx::DylibVarContext, ctx_fns, var_impl::VarTypeOwnedCdylib},
     var_type::VarTypeOwnedSealed,
 };
 use rhsp3_internal_abi::hsp3struct::PVal;
@@ -10,10 +10,14 @@ macro_rules! simple_type {
     ($ty:ty, $hsp_ty:ident) => {
         unsafe impl VarTypeOwnedCdylib for $ty {
             type HspPointerParam = *mut PVal;
-            unsafe fn early_ty_check(ptr: Self::HspPointerParam) -> Result<()> {
+            unsafe fn early_ty_check(
+                _: &DylibVarContext,
+                ptr: Self::HspPointerParam,
+            ) -> Result<()> {
                 hsp_ty_check(&*ptr, HspType::$hsp_ty)
             }
             unsafe fn set_hsp_pointer(
+                _: &DylibVarContext,
                 ptr: Self::HspPointerParam,
                 value: &Self::VarSetParam,
             ) -> Result<()> {
@@ -22,6 +26,7 @@ macro_rules! simple_type {
                 Ok(())
             }
             unsafe fn get_hsp_pointer<'a>(
+                _: &DylibVarContext,
                 ptr: Self::HspPointerParam,
             ) -> Result<Self::VarReturn<'a>> {
                 let proc = ctx_fns::get_var_proc(HspType::$hsp_ty)?;
@@ -45,15 +50,22 @@ simple_type!(isize, Int);
 
 unsafe impl VarTypeOwnedCdylib for f32 {
     type HspPointerParam = *mut PVal;
-    unsafe fn early_ty_check(ptr: Self::HspPointerParam) -> Result<()> {
+    unsafe fn early_ty_check(_: &DylibVarContext, ptr: Self::HspPointerParam) -> Result<()> {
         hsp_ty_check(&*ptr, HspType::Double)
     }
-    unsafe fn set_hsp_pointer(ptr: Self::HspPointerParam, value: &Self::VarSetParam) -> Result<()> {
+    unsafe fn set_hsp_pointer(
+        _: &DylibVarContext,
+        ptr: Self::HspPointerParam,
+        value: &Self::VarSetParam,
+    ) -> Result<()> {
         let raw_val = *value as f64;
         ctx_fns::set_va(ptr, HspType::Double, &raw_val as *const _ as *const c_void)?;
         Ok(())
     }
-    unsafe fn get_hsp_pointer<'a>(ptr: Self::HspPointerParam) -> Result<Self::VarReturn<'a>> {
+    unsafe fn get_hsp_pointer<'a>(
+        _: &DylibVarContext,
+        ptr: Self::HspPointerParam,
+    ) -> Result<Self::VarReturn<'a>> {
         let proc = ctx_fns::get_var_proc(HspType::Double)?;
         let ptr = proc.get_ptr(ptr)? as *mut f64;
         Ok(*ptr as f32)

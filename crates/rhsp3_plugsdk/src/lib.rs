@@ -2,14 +2,20 @@
 #![cfg_attr(feature = "cdylib", feature(c_unwind))]
 #![forbid(unused_must_use)]
 
+mod handles;
+mod utils;
 mod var_type;
 
 #[cfg(feature = "cdylib")]
 mod dylib_hspctx;
 
 #[doc(inline)]
+pub use crate::{
+    handles::ObjectStore,
+    var_type::{Var, VarBuffer, VarType, VarTypeOwned},
+};
+#[doc(inline)]
 pub use rhsp3_internal_macros::hsp_export;
-pub use var_type::{Var, VarBuffer, VarType, VarTypeOwned};
 
 pub mod codegen;
 
