@@ -3,7 +3,7 @@ use crate::{
     ObjectStore,
 };
 use anymap::AnyMap;
-use log::{error, info};
+use log::{debug, error};
 use rhsp3_internal_abi::hsp3struct::{HSP3TYPEINFO, HSPCTX, HSPEXINFO};
 use rhsp3_internal_common::{
     bail_lit, ctx::HspContext, ensure_lit, errors::*, hsp_errors::to_hsp_error, plugin::HspExtData,
@@ -121,7 +121,7 @@ pub unsafe fn set_active_ctx(ctx: *mut HSP3TYPEINFO) -> Result<()> {
             env::set_var("RUST_LOG", "info");
         }
         rhsp3_internal_common::logger::try_init()?;
-        info!(target: "rhsp3_plugsdk", "HPI interface initialized.");
+        debug!(target: "rhsp3_plugsdk", "HPI interface initialized.");
     }
 
     Ok(())

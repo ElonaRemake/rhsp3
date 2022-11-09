@@ -52,6 +52,10 @@ gz 圧縮・解凍プラグイン "z.hpi"
 　dim などの命令でバッファを確保しなおした場合は、
 　その後で再度 zSetDest を呼ぶ必要があります。
 
+(Lymiaからのお知らせ:
+ dest変数にdimやsdimを呼び出したり、別の値を与えたり
+ destに何をしてもundefined behaviorが起こる可能性がある!
+ 私は何もできない。Rustはこんな問題から守れない。)
 
 ○zCompress src, size, clv
 　src で指定されたバッファを size バイト分圧縮します。

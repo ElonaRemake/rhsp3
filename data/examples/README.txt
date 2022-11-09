@@ -9,3 +9,5 @@ directory:
   reimplementation.
 * `z` is a reimplementation of an existing HSP library by MIA in Rust. The directoy contains the original readme and
   sample programs, alongside `z.hpi` and `z.as` which contain the Rust reimplementation.
+
+This reimplementation is available under the public domain.

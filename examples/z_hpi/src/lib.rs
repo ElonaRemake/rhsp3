@@ -88,18 +88,22 @@ fn zOpen(
     name: &str,
     mode: i32,
     level: u32,
-) -> Result<()> {
-    let handle = match mode {
-        Z_READ => ZLibHandle::open_read(Path::new(name))?,
-        Z_WRITE => ZLibHandle::open_write(Path::new(name), level)?,
+) -> Result<i32> {
+    let result = match mode {
+        Z_READ => ZLibHandle::open_read(Path::new(name)),
+        Z_WRITE => ZLibHandle::open_write(Path::new(name), level),
         _ => bail_code!(InvalidParameter),
+    };
+    let handle = match result {
+        Ok(v) => v,
+        Err(e) => return Ok(-1),
     };
 
     let idx = ctx.streams.alloc(RefCell::new(handle))?;
     p_handle.set(idx)?;
     trace!("zlib_open({p_handle:?}, {name:?}, {mode}) = idx");
 
-    Ok(())
+    Ok(0)
 }
 
 #[hsp_export]

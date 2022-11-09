@@ -14,7 +14,9 @@ impl HspExtData for RngData {
         let key_a = time_diff.as_micros() as u64;
         let key_b = (time_diff.as_micros() >> 64) as u64;
         let key_c = std::process::id() as u64;
-        Ok(RngData(ChaCha8Rng::seed_from_u64(key_a ^ key_b ^ key_c)))
+        let seed = (key_a ^ key_b ^ key_c).wrapping_mul(3202034522624059733);
+        trace!("Reseeding from time. (Seed: {seed})");
+        Ok(RngData(ChaCha8Rng::seed_from_u64(seed)))
     }
 }
 

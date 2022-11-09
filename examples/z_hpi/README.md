@@ -5,5 +5,7 @@ demonstration purposes, but can be used as an actual library if you wish.
 
 The original [`z.lzh`] was created by [MIA].
 
+This reimplementation is available under the public domain.
+
 [`z.lzh`]: http://taillove.jp/mia/plugin/arc/z.lzh
 [MIA]: http://taillove.jp/mia/

@@ -8,6 +8,7 @@ dim a,1
 ;—”Œn—ñİ’è
 ex_randomize_time
 
+cls
 font "‚l‚r ƒSƒVƒbƒN",16
 
 repeat 224
@@ -25,6 +26,8 @@ stop
 *next
 
 cls
+font "‚l‚r ƒSƒVƒbƒN",16
+
 repeat 224
 	pos cnt/28*80,cnt\28*16
 	ex_rand2 t,-1000000,2000000

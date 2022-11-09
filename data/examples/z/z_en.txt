@@ -1,0 +1,92 @@
+
+gz compression & decompression plugin "z.hpi"
+---------------------------------------------
+
+Å° What is this?
+
+This is a plugin that uses zlib to compress and decompress files in the gzip
+format. As it compresses data perfectly losslessly, it can be used when your
+program uses too much network data, or to compress images. Don't just use a
+gzip program because that is a little cursed, lol.
+
+Å° How to use
+
+* Copy z.hpi into your HSP folder.
+* Copy z.as into your common folder.
+
+Then, when you use #include "z.as", you can use the following functions.
+
+
+Åõ zOpen hGz, "filename", mode, clv
+  Opens a gzip formatted file.
+    The file handle will be returned in the hGz variable. This value may be
+    used with the zWrite/zRead/zClose functions.
+  mode contains the compression/decompression mode.
+    If it is Z_READ, it will be opened in read mode.
+    If it is Z_WRITE, it will be opened in write mode.
+  clv is used in writing mode for the compression ratio.
+    0 is uncompressed and 9 is the highest compression ratio - but even if you
+    use a value above 3, the compression ratio doesn't change much.
+  If the function terminates normally, stat will contain 0.
+
+
+Åõ zRead hGz, buf, size
+  Reads size bytes of data from the hGz handle.
+  stat will contain the number of bytes read. If an error occurs, or the end of
+  the file is reached, 0 will be returned.
+
+
+Åõ zWrite hGz, buf, size
+  Writes size bytes of data to the hGz handle.
+  stat is the number of bytes written. If an error occurred during writing, 0
+  will be returned.
+
+
+Åõ zClose hGz
+  Closes the hGz handle.
+  Please be sure to call this after you are done writing or reading.
+
+
+Åõ zSetDest dest, size
+  Configures the output of zCompress/zUncompress to be written to dest.
+  If you use dim or a similar command to reallocate the buffer, you must use
+  the zSetDest command again afterwards.
+
+  (Note from Lymia: Neither rhsp3 or Rust will protect you from this. There is
+   nothing I can do to protect you from this. If you even touch dest after
+   calling this, HSP might reallocate it now and cause undefined behavior. You
+   have been warned. HSP3's plugin API and the API design here conspire to
+   render memory safety impossible.)
+
+Åõ zCompress src, size, clv
+  Compresses size bytes from the buffer set in src. The compressed data is
+    written into the buffer set using zSetDest.
+  clv is used to specify the compression ratio.
+    0 is uncompressed and 9 is the highest compression ratio - but even if you
+    use a value above 3, the compression ratio doesn't change much.
+  stat is the size after compression. If an error occurs due to insufficient
+    memory, stat=0 is set.
+
+Åõ zUncompress src, size
+  Decompresses size bytes from the buffer specified in src. The decompressed
+  data is written into the buffer designated using zSetDest. size is the size
+  of the data after decompression. If an error occurs due to sufficient memory,
+  stat=0 is set.
+
+Åõ zGetCrc src, size
+  Obtains a CRC of the first size bytes of the src specified in src. The result
+  is stored as a string in refstr. Use this for checking the integrity of
+  files.
+
+Å° zlib original code license  [ http://www.gzip.org/zlib/ ]
+  zlib.h -- interface of the 'zlib' general purpose compression library
+  version 1.1.4, March 11th, 2002
+  Copyright (C) 1995-2002 Jean-loup Gailly and Mark Adler
+
+  Furthermore, if you rename z.hpi to z.dll, and check the properties, you can
+  read the copyright notice.
+
+
+Å° Contact
+Å@           MIA [ mailto:mia@diry.net ]
+Å@MIA's HomePage [ http://diry.net/mia ]

@@ -1,0 +1,90 @@
+; Run this with hsp3cl
+
+#include "exrand/exrand.as"
+#include "z/z.as"
+
+; Test 1 - rnd works as expected
+; ==============================
+
+mes "Test 1 (rnd works as expected)"
+
+#define RND_TEST_SIZE 4000
+
+dim r0,RND_TEST_SIZE
+dim r1,RND_TEST_SIZE
+dim r2,RND_TEST_SIZE
+dim r3,RND_TEST_SIZE
+
+goto *after_funcs_1
+    #deffunc init_arr array a
+        ex_randomize 12345678
+        repeat RND_TEST_SIZE/2
+            ex_rand a(cnt*2), 100000
+            ex_rand2 a(cnt*2+1), -100000, 200000
+        loop
+    return
+*after_funcs_1
+
+init_arr r0
+init_arr r1
+init_arr r2
+init_arr r3
+
+repeat RND_TEST_SIZE
+	if (r0(cnt) ! r1(cnt)) | (r0(cnt) ! r2(cnt)) | (r0(cnt) ! r3(cnt)) : {
+		mes "RNG mismatch at idx "+cnt+": "+r0(cnt)+", "+r1(cnt)+", "+r2(cnt)+", "+r3(cnt)
+		end 1
+	}
+loop
+
+ex_randomize_time
+repeat RND_TEST_SIZE
+    ex_rand r0(cnt), 100000
+loop
+
+mes "Test 1 completed successfully!"
+
+; Test 2 - z file works as expected
+; =================================
+
+mes "Test 2 (z file works as expected)"
+
+#define DATASIZE	16384
+
+dim wdata, DATASIZE
+dim rdata, DATASIZE
+
+fln = "test.gz"
+
+ex_randomize 100000
+repeat DATASIZE : ex_rand wdata(cnt), 100000 : loop
+
+mes "Writing to "+fln+"..."
+zOpen  hGz, fln, Z_WRITE, 3
+zWrite wdata, hGz, DATASIZE*4
+zClose hGz
+
+exist fln : writesize = strsize
+rate = writesize * 100 / (DATASIZE * 4)
+mes "Output size:  "+writesize+" bytes (Ratio: "+rate+"%)"
+
+mes "\nReading from "+fln+"..."
+zOpen  hGz, fln, Z_READ
+zRead  rdata, hGz, DATASIZE*4
+zClose hGz
+
+repeat DATASIZE
+    if wdata.cnt!rdata.cnt : {
+        mes ""+cnt+" : "+wdata.cnt+" ! "+rdata.cnt
+        end 1
+    }
+loop
+
+mes "Test 2 completed successfully!"
+
+; Tests completed successfully!
+; =============================
+mes ""
+mes ""
+mes "All tests completed successfully!"
+end 0

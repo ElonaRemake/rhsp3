@@ -5,5 +5,7 @@ demonstration purposes, but can be used as an actual library if you wish.
 
 The original [`exrand_100.lzh`] was created by [D.N.A.Softwares] and can still be found through the Internet Archive.
 
+This reimplementation is available under the public domain.
+
 [`exrand_100.lzh`]: http://web.archive.org/web/20051212151105/http://www.infobears.ne.jp/athome/mn_ezaki/hsp/exrand_100.lzh
 [D.N.A.Softwares]: https://www.dna-softwares.com/

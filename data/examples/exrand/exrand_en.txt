@@ -1,0 +1,114 @@
+
+		------　RNG using MT - EXrand v1.00　------
+
+HSP's rng command cannot output values outside range [0,32767]. Therefore, if
+you want to generate a number from larger range, you will need to take two
+numbers from rnd, bit shift one of them, do a bitwise OR, multiply, divide,
+and such weird things. It's a pain. So I put together this plugin for doing
+this without relying on the original rnd.
+
+					-*-*-
+
+This plugin uses the Mersenne Twister library by Makoto Matsumoto and Takushi
+Nishimura. According to Matsumoto's MT webpage, MT has the following features:
+------
+(TL note: blah blah, marketing speech I can't read or translate... tl;dr: it
+ has a long range, it is fast, and it doesn't use much memory... for 1997.)
+(Read this: https://en.wikipedia.org/wiki/Mersenne_Twister#Advantages)
+------
+Makes me wonder what I'm even going to use such a high precision random number
+generator for in HSP, lol... As for why I chose MT, it's because I've known
+about MT for a while. I thought, like: Since the range of the existing rnd is a
+bit small, it'd be a good chance to learn how to develop plugins, so let's make
+MT into a HSP plugin.
+(TL note: or something like that... This whole file is above my reading level.)
+
+					-*-*-
+
+To use this plugin, put the provided exrand.as into the common folder and
+exrand.dll into the folder HSP is installed into. Afterwards, add the following
+line near the top of your code.
+
+#include "exrand.as"
+
+Afterwards, the four commands ex_randomize, ex_randomize_time, ex_rand, and
+ex_rand2 will be valid. I will explain the usage and function of each command
+below:
+
+○ ex_randomize p1
+Initializes the random number sequence. p1 is the seed. Pass a positive value.
+If you give it the same seed, it will the same random numbers will appear every
+time.
+
+○ ex_randomize_time
+Initializes the random number sequence using the current time. If you do this,
+every time, you will get a different random number sequence.
+
+○ ex_rand p1,p2
+Outputs a random number from a range between 0 to p2-1 in the p1 variable.
+Please set a value between 0-$7fffffff to p2.
+You may use this as a direct replacement for HSP's rnd.
+
+○ ex_rand2 p1,p2,p3
+Outputs a random number from a range between p2 and p2+p3-1 in the p1 variable.
+Please set a value between 0-$7fffffff to p3.
+
+					-*-*-
+
+I didn't put much consideration into execution speed at all. At least, for
+values above 32768, this should be faster than using the original rnd command
+with HSP code.
+
+A sample program called sample.as is provided. Really, I wanted to make a
+comparison with the numbers the original rnd makes, but I gave up trying to
+make an "Let's use HSP's original rnd to generate evenly distributed random
+numbers from 0 to a million" algorithm since it was too troublesome...
+
+					-*-*-
+
+The original MT is distributed under the BSD license. Below is the copyright
+notice and license text extracted from the MT source code.
+
+   Copyright (C) 1997 - 2002, Makoto Matsumoto and Takuji Nishimura,
+   All rights reserved.
+
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions
+   are met:
+
+     1. Redistributions of source code must retain the above copyright
+        notice, this list of conditions and the following disclaimer.
+
+     2. Redistributions in binary form must reproduce the above copyright
+        notice, this list of conditions and the following disclaimer in the
+        documentation and/or other materials provided with the distribution.
+
+     3. The names of its contributors may not be used to endorse or promote 
+        products derived from this software without specific prior written 
+        permission.
+
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+   A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+   CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+   EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+   PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+   PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+   LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+   NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+Thus, this plugin is such so-called free-software. Use it as you'd like. Unlike
+some people, I'm not going to say petty things like "no commercial use" or
+"no shareware use". The use doesn't matter. This code is free to redistribute.
+For those who want to modify this, source code is attached. It is for VC++6.0.
+HSPDLL.H can be found seperately. You can get it from onionsoft's HSP page.
+
+As said above, there is no guarentee this will work on every Windows machine in
+the world. Similarly, I am not taking responsibility for if this plugin crashes
+your OS, or causes data loss, or makes your disk get �'d or causes any other
+random troubles.
+
+--------------------
+D.N.A.Softwares http://dna-softwares.go.to/
