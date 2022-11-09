@@ -1,10 +1,14 @@
-use crate::utils::{crate_root, get_ident_id, get_registration_id};
+use crate::utils::{
+    crate_root, get_define_registration_id, get_func_registration_id, get_ident_id,
+};
 use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{
-    parse2, spanned::Spanned, Error, FnArg, GenericArgument, ItemFn, PathArguments, TraitBound,
-    Type, TypeImplTrait, TypeParamBound,
+    parse2, spanned::Spanned, Error, Expr, FnArg, GenericArgument, ItemConst, ItemFn, Lit,
+    PathArguments, TraitBound, Type, TypeImplTrait, TypeParamBound,
 };
+
+// TODO: Support renaming functions.
 
 #[derive(Debug)]
 enum HspParamType {
@@ -337,7 +341,7 @@ fn register_prototypes(
         ));
     }
 
-    let reg_id = get_registration_id();
+    let reg_id = get_func_registration_id();
     let item_name = item.sig.ident.to_string();
     let item_link_name = format!("__rhsp3_dylib_fn__{}", item.sig.ident.to_string());
     Ok(quote! {
@@ -360,8 +364,7 @@ fn register_prototypes(
     })
 }
 
-pub fn hsp_export(attr: TokenStream, item: TokenStream) -> Result<TokenStream, Error> {
-    let mut func = parse2::<ItemFn>(item)?;
+pub fn hsp_export_func(attr: TokenStream, mut func: ItemFn) -> Result<TokenStream, Error> {
     let root = crate_root(attr.span(), "rhsp3_plugsdk")?;
 
     if func.sig.asyncness.is_some() {
@@ -400,5 +403,65 @@ pub fn hsp_export(attr: TokenStream, item: TokenStream) -> Result<TokenStream, E
                 ()
             };
         })
+    }
+}
+
+pub fn hsp_export_const(attr: TokenStream, mut item: ItemConst) -> Result<TokenStream, Error> {
+    let root = crate_root(attr.span(), "rhsp3_plugsdk")?;
+
+    let define_name = item.ident.to_string();
+    let define_str = match &*item.expr {
+        Expr::Lit(lit) => match &lit.lit {
+            Lit::Str(_) => todo!("strings"),
+            Lit::ByteStr(_) => todo!("strings"),
+            Lit::Byte(b) => format!("{}", b.value()),
+            Lit::Char(c) => format!("{}", c.value() as u32),
+            Lit::Int(i) => format!("{}", i.base10_parse::<u128>()?),
+            Lit::Float(f) => format!("{}", f.base10_parse::<f64>()?),
+            Lit::Bool(b) => {
+                if b.value {
+                    "1".into()
+                } else {
+                    "0".into()
+                }
+            }
+            _ => return Err(Error::new(lit.span(), "Unrecognized constant expression.")),
+        },
+        _ => return Err(Error::new(item.expr.span(), "Expression must be a simple literal.")),
+    };
+
+    let reg_id = get_define_registration_id();
+    Ok(quote! {
+        #item
+
+        #[allow(deprecated)]
+        const _: () = {
+            impl<'a> #root::registration::Registration<#reg_id>
+                for crate::__rhsp3_root::GatherDefines<'a>
+            {
+                #[inline(always)]
+                fn run_chain(&self) {
+                    self.0.borrow_mut().push((#define_name.into(), #define_str.into()));
+
+                    use #root::registration::{DerefRampChainA, DerefRampChainB};
+                    let helper = #root::registration::DerefRamp::<{ #reg_id + 1 }, _>(self);
+                    (&helper).run_chain();
+                }
+            }
+            ()
+        };
+    })
+}
+
+pub fn hsp_export(attr: TokenStream, item: TokenStream) -> Result<TokenStream, Error> {
+    if let Ok(x) = parse2::<ItemFn>(item.clone()) {
+        hsp_export_func(attr, x)
+    } else if let Ok(x) = parse2::<ItemConst>(item) {
+        hsp_export_const(attr, x)
+    } else {
+        Err(Error::new(
+            attr.span(),
+            "#[hsp_export] may only be used with consts and functions.",
+        ))
     }
 }

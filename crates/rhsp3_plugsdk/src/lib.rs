@@ -113,17 +113,26 @@ macro_rules! hpi_root {
             pub struct GatherPrototypes<'a>(
                 pub std::cell::RefCell<&'a mut Vec<HspFunctionPrototype>>,
             );
+            pub struct GatherDefines<'a>(
+                pub std::cell::RefCell<&'a mut Vec<(String, String)>>,
+            );
 
             impl HspPluginSealed for $out_type {
+                fn get_defines() -> Vec<(String, String)> {
+                    let mut defines = Vec::new();
+                    let event = GatherDefines(std::cell::RefCell::new(&mut defines));
+                    let helper = DerefRamp::<0, _>(&event);
+                    (&helper).run_chain();
+                    $(defines.extend(<$submodules as HspPluginSealed>::get_defines());)*
+                    defines
+                }
+
                 fn get_prototypes() -> Vec<HspFunctionPrototype> {
                     let mut prototypes = Vec::new();
                     let event = GatherPrototypes(std::cell::RefCell::new(&mut prototypes));
-
                     let helper = DerefRamp::<0, _>(&event);
                     (&helper).run_chain();
-
                     $(prototypes.extend(<$submodules as HspPluginSealed>::get_prototypes());)*
-
                     prototypes
                 }
 

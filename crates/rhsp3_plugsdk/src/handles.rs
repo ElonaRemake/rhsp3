@@ -1,6 +1,14 @@
 use modinverse::modinverse;
 use rhsp3_internal_common::{bail_code, errors::*};
-use std::{cell::RefCell, ffi::c_int, hash::{Hash, Hasher}, mem, rc::Rc, sync::atomic::{AtomicU32, Ordering}, time::SystemTime};
+use std::{
+    cell::RefCell,
+    ffi::c_int,
+    hash::{Hash, Hasher},
+    mem,
+    rc::Rc,
+    sync::atomic::{AtomicU32, Ordering},
+    time::SystemTime,
+};
 use twox_hash::Xxh3Hash64;
 
 #[cold]

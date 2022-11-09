@@ -7,7 +7,7 @@
 
 	fln = "test.gz"
 
-	repeat DATASIZE : rnd wdata.cnt : loop
+	repeat DATASIZE : wdata.cnt = rnd(1000) : loop
 
 	mes fln+" Ç…èoóÕÇµÇ‹Ç∑"
 	zOpen  hGz, fln, Z_WRITE, 3

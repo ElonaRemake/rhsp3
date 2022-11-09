@@ -29,4 +29,5 @@ macro_rules! make_id {
 }
 
 make_id!(get_ident_id);
-make_id!(get_registration_id);
+make_id!(get_func_registration_id);
+make_id!(get_define_registration_id);

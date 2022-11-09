@@ -34,9 +34,9 @@ impl ZLibHandle {
             stream: ZLibStream::Read(GzDecoder::new(BufReader::new(File::open(path)?))),
         })
     }
-    fn open_write(path: impl AsRef<Path>) -> Result<Self> {
+    fn open_write(path: impl AsRef<Path>, level: u32) -> Result<Self> {
         Ok(ZLibHandle {
-            stream: ZLibStream::Write(GzEncoder::new(File::create(path)?, Compression::best())),
+            stream: ZLibStream::Write(GzEncoder::new(File::create(path)?, Compression::new(level))),
         })
     }
 
@@ -75,19 +75,23 @@ impl ZLibHandle {
     }
 }
 
+#[hsp_export]
 const Z_READ: i32 = 0;
+
+#[hsp_export]
 const Z_WRITE: i32 = 1;
 
 #[hsp_export]
-fn zlib_open(
+fn zOpen(
     #[ext_data] ctx: &mut ZLibData,
     p_handle: &mut impl Var<c_int>,
     name: &str,
     mode: i32,
+    level: u32,
 ) -> Result<()> {
     let handle = match mode {
         Z_READ => ZLibHandle::open_read(Path::new(name))?,
-        Z_WRITE => ZLibHandle::open_write(Path::new(name))?,
+        Z_WRITE => ZLibHandle::open_write(Path::new(name), level)?,
         _ => bail_code!(InvalidParameter),
     };
 
@@ -99,7 +103,7 @@ fn zlib_open(
 }
 
 #[hsp_export]
-fn zlib_read(
+fn zRead(
     #[ext_data] ctx: &mut ZLibData,
     data: &mut impl VarBuffer,
     p_handle: c_int,
@@ -112,7 +116,7 @@ fn zlib_read(
 }
 
 #[hsp_export]
-fn zlib_write(
+fn zWrite(
     #[ext_data] ctx: &mut ZLibData,
     data: &mut impl VarBuffer,
     p_handle: c_int,
@@ -125,7 +129,7 @@ fn zlib_write(
 }
 
 #[hsp_export]
-fn zlib_free(#[ext_data] ctx: &mut ZLibData, p_handle: c_int) -> Result<()> {
+fn zClose(#[ext_data] ctx: &mut ZLibData, p_handle: c_int) -> Result<()> {
     trace!("zlib_free({p_handle})");
     ctx.streams.free(p_handle)?.borrow_mut().finish()?;
     Ok(())

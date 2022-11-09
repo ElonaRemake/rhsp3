@@ -33,6 +33,7 @@ pub struct HspFunctionPrototype {
 }
 
 pub trait HspPluginSealed {
+    fn get_defines() -> Vec<(String, String)>;
     fn get_prototypes() -> Vec<HspFunctionPrototype>;
     fn dylib_init_link_name() -> &'static str;
 }

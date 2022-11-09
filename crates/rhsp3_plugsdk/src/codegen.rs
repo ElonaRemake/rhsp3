@@ -112,6 +112,9 @@ pub fn make_hpi_headers<T: HspPlugin>(dylib_name: &str) -> String {
              #func {ident_name}_strctx_out \"__rhsp3_plugsdk__dylib_strctx_output\" int,pval\n"
         ));
     }
+    for (def_name, def_value) in T::get_defines() {
+        accum.push_str(&format!("#define {def_name} {def_value}\n"));
+    }
     if !function_defs.is_empty() {
         accum.push_str(&format!("goto *{ident_name}_skip\n"));
         accum.push_str(&format!("\t{ident_name}_x = \"{MARKER_STR}init:v1\"\n"));
